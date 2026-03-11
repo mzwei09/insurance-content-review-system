@@ -103,6 +103,11 @@
         progress_analyzing_images: '正在分析图片内容...',
         progress_reviewing_image: '正在审核第 {current} 张图片，共 {total} 张...',
         progress_estimated_time: '预计还需约 {seconds} 秒',
+        stream_mode_label: '实时显示审核过程',
+        progress_extracting_text: '正在提取图片 {current} 的文字...',
+        progress_reviewing_text: '正在审核文本内容...',
+        stream_error_network: '网络连接中断，请重试',
+        stream_error_api: '审核失败',
       },
       en: {
         page_title: 'Insurance Marketing Content Review System - AI-Powered Compliance Platform',
@@ -194,6 +199,11 @@
         progress_analyzing_images: 'Analyzing image content...',
         progress_reviewing_image: 'Reviewing image {current} of {total}...',
         progress_estimated_time: 'Estimated {seconds} seconds remaining',
+        stream_mode_label: 'Show review process in real-time',
+        progress_extracting_text: 'Extracting text from image {current}...',
+        progress_reviewing_text: 'Reviewing text content...',
+        stream_error_network: 'Network connection interrupted, please retry',
+        stream_error_api: 'Review failed',
       }
     };
     
@@ -781,6 +791,15 @@
               </button>
             </div>
 
+            <!-- 流式模式开关 -->
+            <div class="mt-4 flex items-center gap-2">
+              <label class="flex items-center gap-2 cursor-pointer select-none">
+                <input type="checkbox" id="stream-mode-toggle" checked 
+                       class="w-4 h-4 rounded border-white/20 bg-white/5 text-aliyun-orange focus:ring-aliyun-orange focus:ring-offset-0">
+                <span class="text-sm text-gray-300" data-i18n="stream_mode_label">实时显示审核过程</span>
+              </label>
+            </div>
+
             <button id="review-btn" 
                     class="aliyun-btn-primary w-full py-3 mt-6 font-semibold rounded-lg transition-all disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:transform-none">
               <span id="review-btn-text" data-i18n="review_btn">开始审核</span>
@@ -935,10 +954,11 @@
             <div id="progress-bar-fill" class="progress-bar-fill" style="width: 0%"></div>
           </div>
         </div>
-        <div class="flex items-center justify-between text-sm text-gray-400 mb-4">
+        <div class="flex items-center justify-between text-sm text-gray-400 mb-2">
           <span id="progress-status">正在审核第 1 张图片，共 1 张...</span>
           <span id="progress-eta">预计还需约 15 秒</span>
         </div>
+        <div id="progress-completed" class="text-sm text-green-400/80 space-y-1 max-h-24 overflow-y-auto hidden"></div>
         <div class="flex justify-center">
           <button id="cancel-review-btn" 
                   class="aliyun-btn-secondary px-6 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2">
@@ -1553,11 +1573,200 @@
       }
     }
     
+    /**
+     * 流式审核：使用 fetch + ReadableStream 解析 SSE，实时显示进度和结果
+     */
+    async function startStreamReview() {
+      const content = document.getElementById('review-input').value.trim();
+      const hasImages = uploadedImages.length > 0;
+      if (!content && !hasImages) {
+        toast('请至少输入文本或上传图片', 'error');
+        return;
+      }
+      
+      const btn = document.getElementById('review-btn');
+      const btnText = document.getElementById('review-btn-text');
+      const btnLoading = document.getElementById('review-btn-loading');
+      const resultEmpty = document.getElementById('review-result-empty');
+      const resultContent = document.getElementById('review-result-content');
+      const uploadProgress = document.getElementById('upload-progress');
+      const progressCompleted = document.getElementById('progress-completed');
+      
+      btn.disabled = true;
+      btnText.classList.add('hidden');
+      btnLoading.classList.remove('hidden');
+      setReviewingState(true);
+      if (hasImages) uploadProgress.classList.remove('hidden');
+      
+      reviewAbortController = new AbortController();
+      showProgressOverlay(!!content, uploadedImages.length);
+      progressCompleted.classList.add('hidden');
+      progressCompleted.innerHTML = '';
+      document.getElementById('review-details-list')?.querySelectorAll('.stream-result-item').forEach(el => el.remove());
+      
+      const token = getToken();
+      const formData = new FormData();
+      formData.append('text', content);
+      for (let i = 0; i < uploadedImages.length; i++) {
+        formData.append('images', uploadedImages[i].file);
+      }
+      
+      try {
+        const res = await fetch('/api/review-multimodal-stream', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}` },
+          body: formData,
+          signal: reviewAbortController.signal
+        });
+        
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          const msg = errData.detail || errData.error || `HTTP ${res.status}`;
+          if (res.status === 401) {
+            toast(t('toast_api_key_error'), 'error');
+            showPage('profile');
+          } else {
+            toast(msg, 'error');
+          }
+          hideProgressOverlay(false);
+          return;
+        }
+        
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+        let completedCount = 0;
+        let streamFinished = false;
+        
+        function processSSEEvent(eventType, eventData) {
+          if (!eventType || !eventData) return false;
+          try {
+            const data = JSON.parse(eventData);
+            if (eventType === 'progress') {
+              const statusEl = document.getElementById('progress-status');
+              const msg = data.message || '';
+              statusEl.textContent = msg;
+            } else if (eventType === 'text_result') {
+              completedCount++;
+              progressCompleted.classList.remove('hidden');
+              const item = document.createElement('div');
+              item.textContent = (currentLang === 'zh' ? '✓ 文本审核完成' : '✓ Text review completed');
+              progressCompleted.appendChild(item);
+              resultEmpty.classList.add('hidden');
+              resultContent.classList.remove('hidden');
+              appendStreamResultToDetails('text', data.result || data);
+            } else if (eventType === 'image_result') {
+              completedCount++;
+              progressCompleted.classList.remove('hidden');
+              const idx = data.image_index || completedCount;
+              const item = document.createElement('div');
+              item.textContent = (currentLang === 'zh' ? `✓ 图片${idx}审核完成` : `✓ Image ${idx} review completed`);
+              progressCompleted.appendChild(item);
+              resultEmpty.classList.add('hidden');
+              resultContent.classList.remove('hidden');
+              const imgResult = Object.assign({}, data.result || data, { image_index: data.image_index || (data.result || data).image_index || idx });
+              appendStreamResultToDetails('image', imgResult);
+            } else if (eventType === 'complete') {
+              hideProgressOverlay(true);
+              lastReviewResult = data;
+              displayResult(data);
+              resultEmpty.classList.add('hidden');
+              resultContent.classList.remove('hidden');
+              document.getElementById('review-result-actions')?.classList.remove('hidden');
+              const inputPreview = content || (uploadedImages.length > 0 ? `已上传 ${uploadedImages.length} 张图片` : '');
+              addToHistory(content, inputPreview, data);
+              toast(t('toast_review_success'), 'success');
+              return true;
+            } else if (eventType === 'error') {
+              hideProgressOverlay(false);
+              toast(data.message || t('stream_error_api'), 'error');
+              return true;
+            }
+          } catch (e) { /* 忽略解析错误 */ }
+          return false;
+        }
+        
+        while (!streamFinished) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          const chunks = buffer.split('\n\n');
+          buffer = chunks.pop() || '';
+          for (const chunk of chunks) {
+            let evType = '';
+            let evData = '';
+            for (const line of chunk.split('\n')) {
+              if (line.startsWith('event: ')) evType = line.slice(7).trim();
+              else if (line.startsWith('data: ')) evData = line.slice(6);
+            }
+            if (evType && evData && processSSEEvent(evType, evData)) {
+              streamFinished = true;
+              break;
+            }
+          }
+        }
+        if (!streamFinished) {
+          hideProgressOverlay(false);
+          toast(t('stream_error_network'), 'error');
+        }
+      } catch (err) {
+        hideProgressOverlay(false);
+        if (err.name === 'AbortError') {
+          // 用户取消
+        } else {
+          toast(t('stream_error_network'), 'error');
+        }
+      } finally {
+        btn.disabled = false;
+        btnText.classList.remove('hidden');
+        btnLoading.classList.add('hidden');
+        setReviewingState(false);
+        uploadProgress.classList.add('hidden');
+        reviewAbortController = null;
+      }
+    }
+    
+    /* 流式模式下渐进追加结果到详情区（在 complete 之前预览） */
+    function appendStreamResultToDetails(type, result) {
+      if (!result) return;
+      const detailsSection = document.getElementById('review-details-section');
+      const detailsList = document.getElementById('review-details-list');
+      if (!detailsSection || !detailsList) return;
+      
+      detailsSection.classList.remove('hidden');
+      const compliant = result.compliance;
+      const violationTypes = result.violation_types || (result.violation_type ? [result.violation_type] : []);
+      const label = type === 'text' 
+        ? t('review_text_result') 
+        : (t('review_image_result') + (result.image_index || ''));
+      
+      const div = document.createElement('div');
+      div.className = `bg-white/5 p-4 rounded-lg border ${compliant ? 'border-green-500/30' : 'border-red-500/30'} stream-result-item`;
+      div.innerHTML = `
+        <div class="flex items-center gap-2 mb-2">
+          <span class="text-lg">${compliant ? '✓' : '✗'}</span>
+          <span class="font-medium ${compliant ? 'text-green-400' : 'text-red-400'}">${escapeHtml(label)}</span>
+          ${!compliant && violationTypes.length > 0 ? 
+            violationTypes.map(vt => `<span class="aliyun-badge-danger px-2 py-1 rounded text-xs">${escapeHtml(vt)}</span>`).join('') : 
+            '<span class="aliyun-badge-success px-2 py-1 rounded text-xs">' + t('review_result_compliant') + '</span>'}
+        </div>
+        ${result.reasoning ? `<p class="text-sm text-gray-400 mt-2">${escapeHtml(result.reasoning)}</p>` : ''}
+        ${result.extracted_text ? `<details class="mt-2"><summary class="text-xs text-gray-500 cursor-pointer hover:text-gray-400">${t('review_extracted_text')}</summary><p class="text-xs text-gray-500 mt-1 pl-4">${escapeHtml(result.extracted_text)}</p></details>` : ''}
+      `;
+      detailsList.appendChild(div);
+    }
+    
     document.getElementById('review-btn').addEventListener('click', async () => {
       const content = document.getElementById('review-input').value.trim();
       const hasImages = uploadedImages.length > 0;
       if (!content && !hasImages) {
         toast('请至少输入文本或上传图片', 'error');
+        return;
+      }
+      
+      const streamMode = document.getElementById('stream-mode-toggle')?.checked ?? true;
+      if (streamMode) {
+        startStreamReview();
         return;
       }
       

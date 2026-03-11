@@ -21,6 +21,7 @@ from typing import Optional
 import yaml
 from fastapi import Depends, FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -637,6 +638,140 @@ def create_app() -> FastAPI:
                     detail=get_message("api_key_invalid", get_lang_from_request(request))
                 )
             raise HTTPException(status_code=500, detail=f"审核服务异常：{error_msg}")
+
+    @app.post("/api/review-multimodal-stream")
+    async def review_multimodal_stream(
+        text: str = Form(""),
+        images: list[UploadFile] = File(default=[]),
+        current_user: dict = Depends(get_current_user_required),
+    ):
+        """
+        图文混合审核（流式）：实时推送审核进度和结果
+        
+        使用 Server-Sent Events (SSE) 格式返回：
+        - type: progress - 进度更新
+        - type: text_result - 文本审核结果
+        - type: image_result - 单张图片审核结果
+        - type: complete - 最终汇总结果
+        """
+        import json
+        import queue
+        
+        text_content = (text or "").strip()
+        if not text_content and not images:
+            raise HTTPException(status_code=400, detail=get_message("input_required", get_lang_from_request(request)))
+        api_key = _resolve_api_key_for_review(current_user)
+        if not api_key:
+            raise HTTPException(status_code=400, detail=get_message("api_key_required", get_lang_from_request(request)))
+
+        # 处理图片上传
+        image_urls = []
+        total_size = 0
+        for uploaded in images:
+            if not uploaded.filename or not uploaded.content_type:
+                continue
+            if not (uploaded.content_type.startswith("image/")):
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"请上传图片文件，当前类型：{uploaded.content_type}",
+                )
+            try:
+                data = await uploaded.read()
+                if not data:
+                    continue
+                if len(data) > MAX_IMAGE_SIZE_BYTES:
+                    raise HTTPException(
+                        status_code=413,
+                        detail=f"单张图片不能超过 {MAX_IMAGE_SIZE_BYTES // (1024*1024)}MB",
+                    )
+                total_size += len(data)
+                if total_size > MAX_TOTAL_IMAGES_SIZE_BYTES:
+                    raise HTTPException(
+                        status_code=413,
+                        detail=f"图片总大小不能超过 {MAX_TOTAL_IMAGES_SIZE_BYTES // (1024*1024)}MB",
+                    )
+                import base64
+                b64 = base64.b64encode(data).decode("utf-8")
+                mime = uploaded.content_type or "image/jpeg"
+                image_urls.append(f"data:{mime};base64,{b64}")
+            except HTTPException:
+                raise
+            except Exception as e:
+                _logger.warning("Read image failed: %s", e)
+                raise HTTPException(status_code=400, detail=f"图片读取失败：{e}")
+
+        # 创建消息队列用于进度回调
+        message_queue = queue.Queue()
+        
+        def progress_callback(event: dict):
+            """进度回调函数，将事件放入队列"""
+            message_queue.put(event)
+        
+        # 在后台线程中执行审核
+        import threading
+        exception_holder = [None]
+        
+        def run_review():
+            try:
+                reviewer = _get_multimodal_reviewer()
+                # 调用带进度回调的审核方法
+                reviewer._review_detailed(
+                    text_content=text_content,
+                    image_urls=image_urls if image_urls else [],
+                    api_key=api_key,
+                    progress_callback=progress_callback
+                )
+                if current_user and current_user.get("id"):
+                    api_key_manager.update_last_used(current_user["id"], _get_db_url())
+            except Exception as e:
+                exception_holder[0] = e
+                message_queue.put({"type": "error", "message": str(e)})
+        
+        review_thread = threading.Thread(target=run_review, daemon=True)
+        review_thread.start()
+        
+        # 生成 SSE 流
+        async def event_generator():
+            try:
+                while True:
+                    # 从队列中获取消息
+                    try:
+                        event = message_queue.get(timeout=0.1)
+                    except queue.Empty:
+                        # 检查线程是否还在运行
+                        if not review_thread.is_alive():
+                            if exception_holder[0]:
+                                error_msg = str(exception_holder[0])
+                                yield f"event: error\ndata: {json.dumps({'message': error_msg}, ensure_ascii=False)}\n\n"
+                            break
+                        continue
+                    
+                    # 发送事件
+                    event_type = event.get("type", "message")
+                    if event_type == "complete":
+                        # 适配结果格式
+                        result = _adapt_review_result(event.get("result", {}))
+                        yield f"event: complete\ndata: {json.dumps(result, ensure_ascii=False)}\n\n"
+                        break
+                    elif event_type == "error":
+                        yield f"event: error\ndata: {json.dumps(event, ensure_ascii=False)}\n\n"
+                        break
+                    else:
+                        yield f"event: {event_type}\ndata: {json.dumps(event, ensure_ascii=False)}\n\n"
+                    
+            except Exception as e:
+                _logger.exception("Stream error: %s", e)
+                yield f"event: error\ndata: {json.dumps({'message': str(e)}, ensure_ascii=False)}\n\n"
+        
+        return StreamingResponse(
+            event_generator(),
+            media_type="text/event-stream",
+            headers={
+                "Cache-Control": "no-cache",
+                "Connection": "keep-alive",
+                "X-Accel-Buffering": "no",  # 禁用 nginx 缓冲
+            }
+        )
 
     @app.get("/api/auth/check")
     async def auth_check():

@@ -1,8 +1,9 @@
 """多模态审核模块 - 支持图文混合内容的合规审核"""
 
+import asyncio
 import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import List, Optional, Union
+from typing import Callable, List, Optional, Union
 
 from .reviewer import ContentReviewer
 
@@ -151,9 +152,9 @@ class MultimodalReviewer(ContentReviewer):
         cfg_api_key = self.config.get("api", {}).get("dashscope_api_key") if self.config else None
         key = api_key or cfg_api_key
 
-        # 如果开启详细模式，逐张审核图片
+        # 如果开启详细模式，并行审核图片
         if detailed and urls:
-            return self._review_detailed(text_content, urls, key)
+            return self._review_detailed(text_content, urls, key, progress_callback=None)
         
         # 否则使用原来的合并审核方式
         image_text = ""
@@ -179,9 +180,21 @@ class MultimodalReviewer(ContentReviewer):
 
         return super().review(combined, api_key=api_key)
 
-    def _review_detailed(self, text_content: str, image_urls: List[str], api_key: str) -> dict:
+    def _review_detailed(
+        self, 
+        text_content: str, 
+        image_urls: List[str], 
+        api_key: str,
+        progress_callback: Optional[Callable[[dict], None]] = None
+    ) -> dict:
         """
-        详细审核模式：分别审核文本和每张图片
+        详细审核模式：并行审核文本和每张图片（性能优化）
+        
+        Args:
+            text_content: 文本内容
+            image_urls: 图片 URL 列表
+            api_key: API 密钥
+            progress_callback: 进度回调函数，用于流式推送进度
         
         Returns:
             {
@@ -195,24 +208,47 @@ class MultimodalReviewer(ContentReviewer):
             }
         """
         text_result = None
-        image_results = []
+        image_results = [None] * len(image_urls)  # 预分配，保持顺序
         
-        # 1. 审核纯文本（如果有）
-        if text_content:
+        def review_text():
+            """审核文本的任务"""
+            if not text_content:
+                return None
             try:
-                text_result = super().review(text_content, api_key=api_key)
-                text_result["source"] = "文本内容"
+                if progress_callback:
+                    progress_callback({
+                        "type": "progress",
+                        "stage": "text_review",
+                        "message": "正在审核文本内容..."
+                    })
+                result = super(MultimodalReviewer, self).review(text_content, api_key=api_key)
+                result["source"] = "文本内容"
+                if progress_callback:
+                    progress_callback({
+                        "type": "text_result",
+                        "result": result
+                    })
+                return result
             except Exception as e:
-                text_result = {
+                return {
                     "compliance": True,
                     "violation_types": None,
                     "reasoning": f"文本审核失败：{e}",
                     "source": "文本内容",
                 }
         
-        # 2. 逐张审核图片
-        for idx, img_url in enumerate(image_urls, 1):
+        def review_image(idx: int, img_url: str):
+            """审核单张图片的任务"""
             try:
+                if progress_callback:
+                    progress_callback({
+                        "type": "progress",
+                        "stage": "image_extract",
+                        "image_index": idx,
+                        "total_images": len(image_urls),
+                        "message": f"正在提取图片{idx}的文字..."
+                    })
+                
                 # 提取单张图片的文字
                 img_text = _extract_text_from_images(
                     [img_url],
@@ -221,36 +257,91 @@ class MultimodalReviewer(ContentReviewer):
                 )
                 
                 if not img_text or not img_text.strip():
-                    image_results.append({
+                    result = {
                         "image_index": idx,
                         "compliance": True,
                         "violation_types": None,
                         "reasoning": "图片无文字内容或提取失败",
                         "source": f"图片{idx}",
+                    }
+                    if progress_callback:
+                        progress_callback({
+                            "type": "image_result",
+                            "image_index": idx,
+                            "result": result
+                        })
+                    return result
+                
+                if progress_callback:
+                    progress_callback({
+                        "type": "progress",
+                        "stage": "image_review",
+                        "image_index": idx,
+                        "total_images": len(image_urls),
+                        "message": f"正在审核图片{idx}的内容..."
                     })
-                    continue
                 
                 # 审核图片文字
-                img_result = super().review(img_text, api_key=api_key)
+                img_result = super(MultimodalReviewer, self).review(img_text, api_key=api_key)
                 img_result["image_index"] = idx
                 img_result["source"] = f"图片{idx}"
                 img_result["extracted_text"] = img_text[:200]  # 保留前200字符
-                image_results.append(img_result)
+                
+                if progress_callback:
+                    progress_callback({
+                        "type": "image_result",
+                        "image_index": idx,
+                        "result": img_result
+                    })
+                
+                return img_result
                 
             except Exception as e:
-                image_results.append({
+                result = {
                     "image_index": idx,
                     "compliance": True,
                     "violation_types": None,
                     "reasoning": f"图片审核失败：{e}",
                     "source": f"图片{idx}",
-                })
+                }
+                if progress_callback:
+                    progress_callback({
+                        "type": "image_result",
+                        "image_index": idx,
+                        "result": result
+                    })
+                return result
+        
+        # 使用线程池并行处理
+        with ThreadPoolExecutor(max_workers=min(len(image_urls) + 1, 6)) as executor:
+            futures = {}
+            
+            # 提交文本审核任务
+            if text_content:
+                futures[executor.submit(review_text)] = "text"
+            
+            # 提交所有图片审核任务
+            for idx, img_url in enumerate(image_urls, 1):
+                futures[executor.submit(review_image, idx, img_url)] = f"image_{idx}"
+            
+            # 等待所有任务完成
+            for future in as_completed(futures):
+                task_id = futures[future]
+                try:
+                    result = future.result()
+                    if task_id == "text":
+                        text_result = result
+                    elif task_id.startswith("image_"):
+                        idx = int(task_id.split("_")[1])
+                        image_results[idx - 1] = result
+                except Exception as e:
+                    print(f"Task {task_id} failed: {e}")
         
         # 3. 汇总结果
         all_results = []
         if text_result:
             all_results.append(text_result)
-        all_results.extend(image_results)
+        all_results.extend([r for r in image_results if r is not None])
         
         # 计算整体合规状态（任一违规则整体违规）
         overall_compliance = all(r.get("compliance", True) for r in all_results)
@@ -284,13 +375,13 @@ class MultimodalReviewer(ContentReviewer):
             reasoning_parts.append(f"【文本】{text_result.get('reasoning', '')}")
         
         for img_r in image_results:
-            if not img_r.get("compliance"):
+            if img_r and not img_r.get("compliance"):
                 idx = img_r.get("image_index", "?")
                 reasoning_parts.append(f"【图片{idx}】{img_r.get('reasoning', '')}")
         
         combined_reasoning = "\n".join(reasoning_parts) if reasoning_parts else "所有内容均合规"
         
-        return {
+        final_result = {
             "compliance": overall_compliance,
             "violation_types": all_violation_types if all_violation_types else None,
             "violation_type": all_violation_types[0] if all_violation_types else None,  # 向后兼容
@@ -298,8 +389,16 @@ class MultimodalReviewer(ContentReviewer):
             "confidence": avg_confidence,
             "reasoning": combined_reasoning,
             "text_result": text_result,  # 文本审核详情
-            "image_results": image_results,  # 每张图片审核详情
+            "image_results": [r for r in image_results if r is not None],  # 每张图片审核详情
         }
+        
+        if progress_callback:
+            progress_callback({
+                "type": "complete",
+                "result": final_result
+            })
+        
+        return final_result
 
     def _fallback_result(self, reasoning: str) -> dict:
         """返回解析失败时的兜底结果"""
