@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>i18n Test</title>
+</head>
+<body>
+  <h1>测试双语功能</h1>
+  <p>请在浏览器中打开 <a href="http://localhost:8000" target="_blank">http://localhost:8000</a></p>
+  <h2>测试步骤：</h2>
+  <ol>
+    <li>✅ 检查页面右上角是否有「中文 / EN」语言切换按钮</li>
+    <li>✅ 点击「EN」按钮，页面应切换为英文</li>
+    <li>✅ 检查以下元素是否已翻译：
+      <ul>
+        <li>页面标题 (Title)</li>
+        <li>登录/注册表单</li>
+        <li>导航栏（个人中心、退出登录）</li>
+        <li>审核页面的所有文本</li>
+        <li>个人中心的所有文本</li>
+      </ul>
+    </li>
+    <li>✅ 点击「中文」按钮，页面应切换回中文</li>
+    <li>✅ 刷新页面，语言偏好应保持（存储在 localStorage）</li>
+  </ol>
+  
+  <h2>预期结果：</h2>
+  <ul>
+    <li>语言切换按钮正常工作</li>
+    <li>所有用户可见文本都能正确翻译</li>
+    <li>语言偏好持久化存储</li>
+    <li>后端错误消息根据请求头返回对应语言</li>
+  </ul>
+  
+  <script>
+    console.log('i18n 测试页面已加载');
+    console.log('请在浏览器中手动测试双语功能');
+  </script>
+</body>
+</html>

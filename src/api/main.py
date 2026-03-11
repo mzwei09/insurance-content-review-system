@@ -37,6 +37,50 @@ MIN_PASSWORD_LENGTH = 6
 MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024  # 单张图片 5MB
 MAX_TOTAL_IMAGES_SIZE_BYTES = 20 * 1024 * 1024  # 多图总大小 20MB
 
+# i18n 双语支持
+I18N_MESSAGES = {
+    "zh": {
+        "password_too_short": f"密码长度不能少于 {MIN_PASSWORD_LENGTH} 个字符",
+        "username_exists": "用户名已存在",
+        "user_not_found": "用户不存在",
+        "wrong_password": "密码错误",
+        "invalid_token": "无效的认证令牌",
+        "api_key_invalid": "API 密钥无效或已过期，请前往个人中心重新配置",
+        "api_key_required": "请先在个人中心配置百炼 API 密钥",
+        "input_required": "请至少输入文本或上传图片",
+        "image_size_exceeded": "单张图片大小不能超过 5MB",
+        "total_size_exceeded": "图片总大小不能超过 20MB",
+        "api_key_saved": "API 密钥已保存",
+        "api_key_deleted": "API 密钥已删除",
+    },
+    "en": {
+        "password_too_short": f"Password must be at least {MIN_PASSWORD_LENGTH} characters",
+        "username_exists": "Username already exists",
+        "user_not_found": "User not found",
+        "wrong_password": "Incorrect password",
+        "invalid_token": "Invalid authentication token",
+        "api_key_invalid": "API key is invalid or expired, please reconfigure in Profile",
+        "api_key_required": "Please configure Dashscope API key in Profile first",
+        "input_required": "Please provide text or upload images",
+        "image_size_exceeded": "Single image size cannot exceed 5MB",
+        "total_size_exceeded": "Total image size cannot exceed 20MB",
+        "api_key_saved": "API key saved successfully",
+        "api_key_deleted": "API key deleted successfully",
+    }
+}
+
+def get_message(key: str, lang: str = "zh") -> str:
+    """获取国际化消息"""
+    return I18N_MESSAGES.get(lang, I18N_MESSAGES["zh"]).get(key, key)
+
+def get_lang_from_request(request: Request) -> str:
+    """从请求头获取语言偏好"""
+    accept_lang = request.headers.get("Accept-Language", "zh")
+    # 简单解析：zh-CN, zh, en-US, en 等
+    if "en" in accept_lang.lower():
+        return "en"
+    return "zh"
+
 
 # Pydantic models at module level for proper FastAPI body inference
 class ReviewRequest(BaseModel):
@@ -284,7 +328,7 @@ def _resolve_api_key_for_review(current_user: Optional[dict], required: bool = T
         if key:
             return key
         if required:
-            raise HTTPException(status_code=400, detail="请先在个人中心配置百炼 API 密钥")
+            raise HTTPException(status_code=400, detail=get_message("api_key_required", get_lang_from_request(request)))
         return None
     if _dev_mode_api_key():
         return _dev_mode_api_key()
@@ -366,11 +410,12 @@ def create_app() -> FastAPI:
 
     # ----- Auth routes -----
     @app.post("/api/auth/register")
-    async def register(req: RegisterRequest):
+    async def register(req: RegisterRequest, request: Request):
+        lang = get_lang_from_request(request)
         if not req.username.strip():
-            raise HTTPException(status_code=400, detail="用户名不能为空")
+            raise HTTPException(status_code=400, detail=get_message("username_required", lang) if lang == "en" else "用户名不能为空")
         if not req.password or len(req.password) < MIN_PASSWORD_LENGTH:
-            raise HTTPException(status_code=400, detail=f"密码至少{MIN_PASSWORD_LENGTH}位")
+            raise HTTPException(status_code=400, detail=get_message("password_too_short", lang))
         try:
             user = auth.register(req.username.strip(), req.password, req.email, _get_db_url())
             secret, algo, expire_min = _get_auth_config()
@@ -389,15 +434,16 @@ def create_app() -> FastAPI:
             raise HTTPException(status_code=400, detail=str(e))
 
     @app.post("/api/auth/login")
-    async def login(req: LoginRequest):
+    async def login(req: LoginRequest, request: Request):
+        lang = get_lang_from_request(request)
         user, error_code = auth.authenticate(req.username, req.password, _get_db_url())
         if not user:
             if error_code == "user_not_found":
-                raise HTTPException(status_code=404, detail="用户不存在，请先注册")
+                raise HTTPException(status_code=404, detail=get_message("user_not_found", lang))
             elif error_code == "wrong_password":
-                raise HTTPException(status_code=401, detail="密码错误")
+                raise HTTPException(status_code=401, detail=get_message("wrong_password", lang))
             else:
-                raise HTTPException(status_code=401, detail="用户名或密码错误")
+                raise HTTPException(status_code=401, detail=get_message("wrong_password", lang))
         secret, algo, expire_min = _get_auth_config()
         token = auth.create_access_token(
             {"sub": str(user.id), "username": user.username},
@@ -484,7 +530,7 @@ def create_app() -> FastAPI:
             raise HTTPException(status_code=400, detail="内容不能为空")
         api_key = _resolve_api_key_for_review(current_user)
         if not api_key:
-            raise HTTPException(status_code=400, detail="请先在个人中心配置百炼 API 密钥")
+            raise HTTPException(status_code=400, detail=get_message("api_key_required", get_lang_from_request(request)))
         try:
             reviewer = _get_reviewer()
             raw = reviewer.review(body.content, api_key=api_key)
@@ -498,7 +544,7 @@ def create_app() -> FastAPI:
             if "401" in error_msg or "invalid_api_key" in error_msg or "Incorrect API key" in error_msg:
                 raise HTTPException(
                     status_code=401,
-                    detail="API 密钥无效或已过期，请在个人中心重新配置正确的百炼 API 密钥"
+                    detail=get_message("api_key_invalid", get_lang_from_request(request))
                 )
             raise HTTPException(status_code=400, detail=error_msg)
         except Exception as e:
@@ -508,7 +554,7 @@ def create_app() -> FastAPI:
             if "401" in error_msg or "invalid_api_key" in error_msg or "Incorrect API key" in error_msg:
                 raise HTTPException(
                     status_code=401,
-                    detail="API 密钥无效或已过期，请在个人中心重新配置正确的百炼 API 密钥"
+                    detail=get_message("api_key_invalid", get_lang_from_request(request))
                 )
             raise HTTPException(status_code=500, detail=f"审核服务异常：{error_msg}")
 
@@ -521,10 +567,10 @@ def create_app() -> FastAPI:
         """图文混合审核：支持文本 + 多图片上传"""
         text_content = (text or "").strip()
         if not text_content and not images:
-            raise HTTPException(status_code=400, detail="请至少输入文本或上传图片")
+            raise HTTPException(status_code=400, detail=get_message("input_required", get_lang_from_request(request)))
         api_key = _resolve_api_key_for_review(current_user)
         if not api_key:
-            raise HTTPException(status_code=400, detail="请先在个人中心配置百炼 API 密钥")
+            raise HTTPException(status_code=400, detail=get_message("api_key_required", get_lang_from_request(request)))
 
         image_urls = []
         total_size = 0
@@ -578,7 +624,7 @@ def create_app() -> FastAPI:
             if "401" in error_msg or "invalid_api_key" in error_msg or "Incorrect API key" in error_msg:
                 raise HTTPException(
                     status_code=401,
-                    detail="API 密钥无效或已过期，请在个人中心重新配置正确的百炼 API 密钥"
+                    detail=get_message("api_key_invalid", get_lang_from_request(request))
                 )
             raise HTTPException(status_code=400, detail=error_msg)
         except Exception as e:
@@ -588,7 +634,7 @@ def create_app() -> FastAPI:
             if "401" in error_msg or "invalid_api_key" in error_msg or "Incorrect API key" in error_msg:
                 raise HTTPException(
                     status_code=401,
-                    detail="API 密钥无效或已过期，请在个人中心重新配置正确的百炼 API 密钥"
+                    detail=get_message("api_key_invalid", get_lang_from_request(request))
                 )
             raise HTTPException(status_code=500, detail=f"审核服务异常：{error_msg}")
 

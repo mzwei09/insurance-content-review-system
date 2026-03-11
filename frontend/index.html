@@ -3,8 +3,250 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>保险营销内容智能审核系统 - AI驱动的合规审核平台</title>
+  <title data-i18n="page_title">保险营销内容智能审核系统 - AI驱动的合规审核平台</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- i18n 国际化支持 -->
+  <script>
+    // 默认语言：从 localStorage 读取，否则使用中文
+    const DEFAULT_LANG = localStorage.getItem('app_language') || 'zh';
+    
+    // 双语文本映射
+    const i18nTexts = {
+      zh: {
+        page_title: '保险营销内容智能审核系统 - AI驱动的合规审核平台',
+        app_name: '保险营销内容智能审核系统',
+        app_subtitle: 'AI驱动的合规审核平台',
+        nav_home: '首页',
+        nav_profile: '个人中心',
+        nav_logout: '退出登录',
+        login_title: '登录账号',
+        login_username: '用户名',
+        login_password: '密码',
+        login_btn: '登录',
+        login_loading: '登录中...',
+        login_no_account: '还没有账号？',
+        login_register_link: '立即注册',
+        register_title: '注册新账号',
+        register_username: '用户名',
+        register_password: '密码',
+        register_email: '邮箱（可选）',
+        register_btn: '注册',
+        register_loading: '注册中...',
+        register_has_account: '已有账号？',
+        register_login_link: '立即登录',
+        review_title: '智能审核',
+        review_subtitle: '输入营销内容，AI自动判断是否违规',
+        review_input_placeholder: '请输入待审核的保险营销内容...\n\n示例：\n- "投保即返现，收益高达15%！稳赚不赔，保本保息！"\n- "明星代言，百万用户信赖！"\n- "限时优惠，错过再等一年！"',
+        review_image_upload: '上传图片（可选）',
+        review_image_hint: '支持 JPG、PNG、GIF、WebP，可多选（最多6张）',
+        review_btn: '开始审核',
+        review_loading: '审核中...',
+        review_cancel: '取消审核',
+        review_result_title: '审核结果',
+        review_result_compliant: '合规',
+        review_result_violation: '违规',
+        review_result_detected: '检测到违规内容',
+        review_violation_type: '违规类型',
+        review_confidence: '置信度',
+        review_cited_articles: '引用监管条文',
+        review_reasoning: '审核理由',
+        review_relevance: '相关度',
+        review_detailed_results: '详细审核结果',
+        review_text_result: '文本内容',
+        review_image_result: '图片',
+        review_extracted_text: '提取的文字',
+        review_history_title: '审核历史',
+        review_history_empty: '暂无审核记录',
+        review_history_clear: '清空历史',
+        review_history_reload: '重新审核',
+        review_empty_hint: '输入文本或上传图片后点击"开始审核"',
+        profile_title: '个人中心',
+        profile_subtitle: '管理您的账号和API密钥',
+        profile_account_info: '账号信息',
+        profile_username: '用户名',
+        profile_api_key_section: 'API 密钥配置',
+        profile_api_key_label: '百炼 API 密钥',
+        profile_api_key_placeholder: '请输入您的百炼 API 密钥（sk-开头）',
+        profile_api_key_hint: '如何获取？访问',
+        profile_api_key_hint_link: '百炼控制台',
+        profile_api_key_save: '保存密钥',
+        profile_api_key_verify: '验证密钥',
+        profile_api_key_delete: '删除密钥',
+        profile_api_key_status: '密钥状态',
+        profile_api_key_valid: '已配置且有效',
+        profile_api_key_invalid: '未配置或已失效',
+        usage_guide_title: '使用说明',
+        usage_guide_step1: '第一步：在个人中心配置百炼 API 密钥',
+        usage_guide_step2: '第二步：输入待审核的营销文本或上传图片',
+        usage_guide_step3: '第三步：点击「开始审核」按钮',
+        usage_guide_step4: '第四步：查看审核结果和违规原因',
+        usage_guide_flow: '操作流程：输入文本或上传图片 → 点击「开始审核」→ 查看结果',
+        usage_guide_features: '核心功能',
+        usage_guide_feature1: '自动识别7种违规类型',
+        usage_guide_feature2: '精准引用监管条文',
+        usage_guide_feature3: '支持文本和图片审核',
+        usage_guide_feature4: '提供置信度评分',
+        toast_login_success: '登录成功',
+        toast_register_success: '注册成功',
+        toast_logout_success: '已退出登录',
+        toast_api_key_saved: 'API 密钥已保存',
+        toast_api_key_deleted: 'API 密钥已删除',
+        toast_api_key_error: 'API 密钥错误，请前往个人中心重新配置',
+        toast_review_success: '审核完成',
+        toast_review_error: '审核失败',
+        toast_history_cleared: '历史记录已清空',
+        alert_login_required: '请先登录',
+        alert_login_required_desc: '登录后即可使用审核功能',
+        alert_login_btn: '去登录',
+        progress_analyzing: '正在分析文本内容...',
+        progress_analyzing_images: '正在分析图片内容...',
+        progress_reviewing_image: '正在审核第 {current} 张图片，共 {total} 张...',
+        progress_estimated_time: '预计还需约 {seconds} 秒',
+      },
+      en: {
+        page_title: 'Insurance Marketing Content Review System - AI-Powered Compliance Platform',
+        app_name: 'Insurance Content Review',
+        app_subtitle: 'AI-Powered Compliance Platform',
+        nav_home: 'Home',
+        nav_profile: 'Profile',
+        nav_logout: 'Logout',
+        login_title: 'Login',
+        login_username: 'Username',
+        login_password: 'Password',
+        login_btn: 'Login',
+        login_loading: 'Logging in...',
+        login_no_account: "Don't have an account?",
+        login_register_link: 'Register Now',
+        register_title: 'Register',
+        register_username: 'Username',
+        register_password: 'Password',
+        register_email: 'Email (Optional)',
+        register_btn: 'Register',
+        register_loading: 'Registering...',
+        register_has_account: 'Already have an account?',
+        register_login_link: 'Login Now',
+        review_title: 'Smart Review',
+        review_subtitle: 'Input marketing content, AI automatically detects violations',
+        review_input_placeholder: 'Enter insurance marketing content to review...\n\nExamples:\n- "Invest now, returns up to 15%! Guaranteed profit!"\n- "Celebrity endorsed, trusted by millions!"\n- "Limited time offer, don\'t miss out!"',
+        review_image_upload: 'Upload Images (Optional)',
+        review_image_hint: 'Supports JPG, PNG, GIF, WebP, multiple selection (max 6 images)',
+        review_btn: 'Start Review',
+        review_loading: 'Reviewing...',
+        review_cancel: 'Cancel Review',
+        review_result_title: 'Review Result',
+        review_result_compliant: 'Compliant',
+        review_result_violation: 'Violation',
+        review_result_detected: 'Violation Detected',
+        review_violation_type: 'Violation Type',
+        review_confidence: 'Confidence',
+        review_cited_articles: 'Cited Regulations',
+        review_reasoning: 'Reasoning',
+        review_relevance: 'Relevance',
+        review_detailed_results: 'Detailed Results',
+        review_text_result: 'Text Content',
+        review_image_result: 'Image',
+        review_extracted_text: 'Extracted Text',
+        review_history_title: 'Review History',
+        review_history_empty: 'No review records',
+        review_history_clear: 'Clear History',
+        review_history_reload: 'Review Again',
+        review_empty_hint: 'Enter text or upload images, then click "Start Review"',
+        profile_title: 'Profile',
+        profile_subtitle: 'Manage your account and API key',
+        profile_account_info: 'Account Information',
+        profile_username: 'Username',
+        profile_api_key_section: 'API Key Configuration',
+        profile_api_key_label: 'Dashscope API Key',
+        profile_api_key_placeholder: 'Enter your Dashscope API key (starts with sk-)',
+        profile_api_key_hint: 'How to get? Visit',
+        profile_api_key_hint_link: 'Dashscope Console',
+        profile_api_key_save: 'Save Key',
+        profile_api_key_verify: 'Verify Key',
+        profile_api_key_delete: 'Delete Key',
+        profile_api_key_status: 'Key Status',
+        profile_api_key_valid: 'Configured and Valid',
+        profile_api_key_invalid: 'Not Configured or Invalid',
+        usage_guide_title: 'Usage Guide',
+        usage_guide_step1: 'Step 1: Configure Dashscope API key in Profile',
+        usage_guide_step2: 'Step 2: Enter marketing text or upload images',
+        usage_guide_step3: 'Step 3: Click "Start Review" button',
+        usage_guide_step4: 'Step 4: View review results and violation reasons',
+        usage_guide_flow: 'Flow: Input text/images → Click "Start Review" → View results',
+        usage_guide_features: 'Core Features',
+        usage_guide_feature1: 'Auto-detect 7 violation types',
+        usage_guide_feature2: 'Precisely cite regulations',
+        usage_guide_feature3: 'Support text and image review',
+        usage_guide_feature4: 'Provide confidence scores',
+        toast_login_success: 'Login successful',
+        toast_register_success: 'Registration successful',
+        toast_logout_success: 'Logged out',
+        toast_api_key_saved: 'API key saved',
+        toast_api_key_deleted: 'API key deleted',
+        toast_api_key_error: 'API key error, please reconfigure in Profile',
+        toast_review_success: 'Review completed',
+        toast_review_error: 'Review failed',
+        toast_history_cleared: 'History cleared',
+        alert_login_required: 'Login Required',
+        alert_login_required_desc: 'Please login to use review features',
+        alert_login_btn: 'Go to Login',
+        progress_analyzing: 'Analyzing text content...',
+        progress_analyzing_images: 'Analyzing image content...',
+        progress_reviewing_image: 'Reviewing image {current} of {total}...',
+        progress_estimated_time: 'Estimated {seconds} seconds remaining',
+      }
+    };
+    
+    // 当前语言
+    let currentLang = DEFAULT_LANG;
+    
+    // 获取文本
+    function t(key, params = {}) {
+      let text = i18nTexts[currentLang][key] || i18nTexts['zh'][key] || key;
+      // 替换参数
+      Object.keys(params).forEach(k => {
+        text = text.replace(new RegExp(`\\{${k}\\}`, 'g'), params[k]);
+      });
+      return text;
+    }
+    
+    // 更新所有 i18n 元素
+    function updateI18n() {
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        const text = t(key);
+        
+        if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+          el.placeholder = text;
+        } else if (el.tagName === 'TITLE') {
+          el.textContent = text;
+        } else {
+          el.textContent = text;
+        }
+      });
+      
+      // 更新 HTML lang 属性
+      document.documentElement.lang = currentLang === 'zh' ? 'zh-CN' : 'en';
+    }
+    
+    // 切换语言
+    function switchLanguage(lang) {
+      if (lang === currentLang) return;
+      currentLang = lang;
+      localStorage.setItem('app_language', lang);
+      updateI18n();
+      
+      // 更新语言切换按钮状态
+      document.querySelectorAll('[data-lang-btn]').forEach(btn => {
+        const btnLang = btn.getAttribute('data-lang-btn');
+        if (btnLang === lang) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      });
+    }
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script>
@@ -244,6 +486,35 @@
       0%, 100% { opacity: 1; transform: scale(1); }
       50% { opacity: 0.5; transform: scale(1.2); }
     }
+    /* 语言切换按钮 */
+    .lang-switcher {
+      display: flex;
+      gap: 0.25rem;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 0.25rem;
+    }
+    .lang-btn {
+      padding: 0.375rem 0.75rem;
+      border-radius: 6px;
+      font-size: 0.875rem;
+      color: rgba(255, 255, 255, 0.6);
+      transition: all 0.2s ease;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+    }
+    .lang-btn:hover {
+      color: rgba(255, 255, 255, 0.9);
+      background: rgba(255, 255, 255, 0.05);
+    }
+    .lang-btn.active {
+      color: #fff;
+      background: linear-gradient(135deg, #FF6A00 0%, #FF8533 100%);
+      box-shadow: 0 2px 8px rgba(255, 106, 0, 0.3);
+    }
+    
     /* 审核中禁用上传区 */
     .upload-zone.reviewing {
       pointer-events: none;
@@ -333,14 +604,20 @@
           <div class="w-8 h-8 bg-gradient-to-br from-aliyun-orange to-orange-400 rounded-lg flex items-center justify-center flex-shrink-0">
             <span class="text-white font-bold text-sm">AI</span>
           </div>
-          <span class="text-white font-semibold text-base sm:text-lg truncate max-w-[180px] sm:max-w-none">保险营销内容智能审核</span>
+          <span class="text-white font-semibold text-base sm:text-lg truncate max-w-[180px] sm:max-w-none" data-i18n="app_name">保险营销内容智能审核</span>
         </a>
       </div>
       <div class="relative flex items-center gap-2 sm:gap-6">
+        <!-- 语言切换 -->
+        <div class="lang-switcher">
+          <button class="lang-btn active" data-lang-btn="zh" onclick="switchLanguage('zh')">中文</button>
+          <button class="lang-btn" data-lang-btn="en" onclick="switchLanguage('en')">EN</button>
+        </div>
+        
         <div id="nav-links" class="nav-links flex items-center gap-4 sm:gap-6">
           <span id="nav-username" class="text-gray-300 text-sm hidden sm:inline"></span>
-          <a href="#" data-page="profile" class="page-link text-gray-300 hover:text-white transition-colors text-sm py-2">个人中心</a>
-          <button id="logout-btn" class="text-gray-400 hover:text-red-400 transition-colors text-sm py-2">退出登录</button>
+          <a href="#" data-page="profile" class="page-link text-gray-300 hover:text-white transition-colors text-sm py-2" data-i18n="nav_profile">个人中心</a>
+          <button id="logout-btn" class="text-gray-400 hover:text-red-400 transition-colors text-sm py-2" data-i18n="nav_logout">退出登录</button>
         </div>
         <button id="hamburger-btn" class="hamburger-btn aliyun-btn-secondary rounded-lg p-2 sm:hidden" aria-label="菜单">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
@@ -357,37 +634,37 @@
           <div class="inline-block w-16 h-16 bg-gradient-to-br from-aliyun-orange to-orange-400 rounded-2xl flex items-center justify-center mb-4">
             <span class="text-white font-bold text-2xl">AI</span>
           </div>
-          <h1 class="text-3xl font-bold mb-2">保险营销内容智能审核</h1>
-          <p class="text-gray-400">基于大模型的合规审核平台</p>
+          <h1 class="text-3xl font-bold mb-2" data-i18n="app_name">保险营销内容智能审核</h1>
+          <p class="text-gray-400" data-i18n="app_subtitle">基于大模型的合规审核平台</p>
         </div>
         
         <div class="aliyun-card p-8">
-          <h2 class="text-xl font-semibold mb-6">登录账号</h2>
+          <h2 class="text-xl font-semibold mb-6" data-i18n="login_title">登录账号</h2>
           <form id="login-form" class="space-y-5">
             <div>
-              <label class="block text-sm font-medium text-gray-300 mb-2">用户名</label>
+              <label class="block text-sm font-medium text-gray-300 mb-2" data-i18n="login_username">用户名</label>
               <input type="text" id="login-username" required 
                      class="aliyun-input w-full px-4 py-3 rounded-lg transition-all" 
-                     placeholder="请输入用户名">
+                     placeholder="请输入用户名" data-i18n="login_username">
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-300 mb-2">密码</label>
+              <label class="block text-sm font-medium text-gray-300 mb-2" data-i18n="login_password">密码</label>
               <input type="password" id="login-password" required 
                      class="aliyun-input w-full px-4 py-3 rounded-lg transition-all" 
-                     placeholder="请输入密码">
+                     placeholder="请输入密码" data-i18n="login_password">
             </div>
             <p id="login-error" class="text-red-400 text-sm hidden"></p>
             <button type="submit" id="login-submit-btn"
                     class="aliyun-btn-primary w-full py-3 text-white font-semibold rounded-lg transition-all disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2">
-              <span id="login-btn-text">登录</span>
+              <span id="login-btn-text" data-i18n="login_btn">登录</span>
               <span id="login-btn-loading" class="hidden flex items-center justify-center gap-2">
                 <div class="loading-spinner"></div>
-                <span>登录中...</span>
+                <span data-i18n="login_loading">登录中...</span>
               </span>
             </button>
           </form>
           <p class="mt-6 text-center text-gray-400 text-sm">
-            还没有账号？ <a href="#" data-page="register" class="page-link text-aliyun-orange hover:underline">立即注册</a>
+            <span data-i18n="login_no_account">还没有账号？</span> <a href="#" data-page="register" class="page-link text-aliyun-orange hover:underline" data-i18n="login_register_link">立即注册</a>
           </p>
         </div>
       </div>
@@ -400,43 +677,43 @@
           <div class="inline-block w-16 h-16 bg-gradient-to-br from-aliyun-orange to-orange-400 rounded-2xl flex items-center justify-center mb-4">
             <span class="text-white font-bold text-2xl">AI</span>
           </div>
-          <h1 class="text-3xl font-bold mb-2">创建账号</h1>
-          <p class="text-gray-400">开始使用AI驱动的合规审核</p>
+          <h1 class="text-3xl font-bold mb-2" data-i18n="register_title">创建账号</h1>
+          <p class="text-gray-400" data-i18n="app_subtitle">开始使用AI驱动的合规审核</p>
         </div>
         
         <div class="aliyun-card p-8">
-          <h2 class="text-xl font-semibold mb-6">注册新账号</h2>
+          <h2 class="text-xl font-semibold mb-6" data-i18n="register_title">注册新账号</h2>
           <form id="register-form" class="space-y-5">
             <div>
-              <label class="block text-sm font-medium text-gray-300 mb-2">用户名</label>
+              <label class="block text-sm font-medium text-gray-300 mb-2" data-i18n="register_username">用户名</label>
               <input type="text" id="register-username" required 
                      class="aliyun-input w-full px-4 py-3 rounded-lg transition-all" 
-                     placeholder="请输入用户名">
+                     placeholder="请输入用户名" data-i18n="register_username">
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-300 mb-2">密码</label>
+              <label class="block text-sm font-medium text-gray-300 mb-2" data-i18n="register_password">密码</label>
               <input type="password" id="register-password" required minlength="6" 
                      class="aliyun-input w-full px-4 py-3 rounded-lg transition-all" 
-                     placeholder="至少6位字符">
+                     placeholder="至少6位字符" data-i18n="register_password">
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-300 mb-2">邮箱（可选）</label>
+              <label class="block text-sm font-medium text-gray-300 mb-2" data-i18n="register_email">邮箱（可选）</label>
               <input type="email" id="register-email" 
                      class="aliyun-input w-full px-4 py-3 rounded-lg transition-all" 
-                     placeholder="example@email.com">
+                     placeholder="example@email.com" data-i18n="register_email">
             </div>
             <p id="register-error" class="text-red-400 text-sm hidden"></p>
             <button type="submit" id="register-submit-btn"
                     class="aliyun-btn-primary w-full py-3 text-white font-semibold rounded-lg transition-all disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2">
-              <span id="register-btn-text">注册</span>
+              <span id="register-btn-text" data-i18n="register_btn">注册</span>
               <span id="register-btn-loading" class="hidden flex items-center justify-center gap-2">
                 <div class="loading-spinner"></div>
-                <span>注册中...</span>
+                <span data-i18n="register_loading">注册中...</span>
               </span>
             </button>
           </form>
           <p class="mt-6 text-center text-gray-400 text-sm">
-            已有账号？ <a href="#" data-page="login" class="page-link text-aliyun-orange hover:underline">立即登录</a>
+            <span data-i18n="register_has_account">已有账号？</span> <a href="#" data-page="login" class="page-link text-aliyun-orange hover:underline" data-i18n="register_login_link">立即登录</a>
           </p>
         </div>
       </div>
@@ -446,17 +723,15 @@
     <div id="page-review" class="page">
       <div class="mb-8">
         <h1 class="text-4xl font-bold mb-3">
-          <span class="gradient-text">AI智能审核</span>
+          <span class="gradient-text" data-i18n="review_title">AI智能审核</span>
         </h1>
-        <p class="text-gray-400 text-lg">基于大模型的保险营销内容合规审核，自动识别违规表述并引用监管条文</p>
+        <p class="text-gray-400 text-lg" data-i18n="review_subtitle">基于大模型的保险营销内容合规审核，自动识别违规表述并引用监管条文</p>
       </div>
 
       <div id="review-login-required" class="hidden aliyun-card p-6 text-center mb-8">
-        <p class="text-lg font-medium text-gray-300 mb-2">请先登录</p>
-        <p class="text-gray-400 text-sm mb-4">登录后即可使用审核功能</p>
-        <a href="#" data-page="login" class="page-link inline-block px-6 py-2 aliyun-btn-primary rounded-lg text-sm">
-          去登录
-        </a>
+        <p class="text-lg font-medium text-gray-300 mb-2" data-i18n="alert_login_required">请先登录</p>
+        <p class="text-gray-400 text-sm mb-4" data-i18n="alert_login_required_desc">登录后即可使用审核功能</p>
+        <a href="#" data-page="login" class="page-link inline-block px-6 py-2 aliyun-btn-primary rounded-lg text-sm" data-i18n="alert_login_btn">去登录</a>
       </div>
 
       <div id="review-main" class="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -466,11 +741,11 @@
             <h3 class="text-lg font-semibold mb-4">输入待审核内容</h3>
             <textarea id="review-input" 
                       class="aliyun-input w-full h-48 px-4 py-3 rounded-lg resize-none transition-all" 
-                      placeholder="请输入保险营销文案、海报文字、话术等内容..."></textarea>
+                      placeholder="请输入待审核的保险营销内容..." data-i18n="review_input_placeholder"></textarea>
             
             <!-- 图片上传区域 -->
             <div class="mt-4">
-              <h4 class="text-sm font-medium text-gray-300 mb-2">配图上传（可选）</h4>
+              <h4 class="text-sm font-medium text-gray-300 mb-2" data-i18n="review_image_upload">配图上传（可选）</h4>
               <div id="upload-zone" class="upload-zone aliyun-card p-6 cursor-pointer" style="pointer-events: auto;">
                 <input type="file" id="image-input" accept="image/*" multiple class="hidden">
                 <div id="upload-placeholder" class="text-center py-4" style="pointer-events: none;">
@@ -478,7 +753,7 @@
                     <span class="text-2xl">🖼️</span>
                   </div>
                   <p class="text-gray-400 text-sm">点击或拖拽图片到此处上传</p>
-                  <p class="text-gray-500 text-xs mt-1">支持 JPG、PNG、GIF、WebP，可多选（最多6张）</p>
+                  <p class="text-gray-500 text-xs mt-1" data-i18n="review_image_hint">支持 JPG、PNG、GIF、WebP，可多选（最多6张）</p>
                 </div>
                 <div id="upload-progress" class="hidden mt-2" style="pointer-events: none;">
                   <p class="text-aliyun-orange text-sm">正在处理图片...</p>
@@ -508,24 +783,24 @@
 
             <button id="review-btn" 
                     class="aliyun-btn-primary w-full py-3 mt-6 font-semibold rounded-lg transition-all disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:transform-none">
-              <span id="review-btn-text">开始审核</span>
+              <span id="review-btn-text" data-i18n="review_btn">开始审核</span>
               <span id="review-btn-loading" class="hidden flex items-center justify-center gap-2">
                 <div class="loading-spinner"></div>
-                <span>审核中...</span>
+                <span data-i18n="review_loading">审核中...</span>
               </span>
             </button>
           </div>
 
           <!-- 功能特性 -->
           <div class="aliyun-card p-6">
-            <h3 class="text-lg font-semibold mb-4">核心功能</h3>
+            <h3 class="text-lg font-semibold mb-4" data-i18n="usage_guide_features">核心功能</h3>
             <div class="space-y-3">
               <div class="flex items-start gap-3">
                 <div class="w-6 h-6 bg-aliyun-orange/20 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
                   <span class="text-aliyun-orange text-xs">✓</span>
                 </div>
                 <div>
-                  <p class="font-medium text-sm">智能识别违规类型</p>
+                  <p class="font-medium text-sm" data-i18n="usage_guide_feature1">智能识别违规类型</p>
                   <p class="text-gray-400 text-xs mt-1">支持7种违规类型识别</p>
                 </div>
               </div>
@@ -534,7 +809,7 @@
                   <span class="text-aliyun-orange text-xs">✓</span>
                 </div>
                 <div>
-                  <p class="font-medium text-sm">精准引用监管条文</p>
+                  <p class="font-medium text-sm" data-i18n="usage_guide_feature2">精准引用监管条文</p>
                   <p class="text-gray-400 text-xs mt-1">自动检索并引用相关法规</p>
                 </div>
               </div>
@@ -543,7 +818,7 @@
                   <span class="text-aliyun-orange text-xs">✓</span>
                 </div>
                 <div>
-                  <p class="font-medium text-sm">RAG增强推理</p>
+                  <p class="font-medium text-sm" data-i18n="usage_guide_feature3">RAG增强推理</p>
                   <p class="text-gray-400 text-xs mt-1">向量检索+大模型推理</p>
                 </div>
               </div>
@@ -552,7 +827,7 @@
                   <span class="text-aliyun-orange text-xs">✓</span>
                 </div>
                 <div>
-                  <p class="font-medium text-sm">图文多模态审核</p>
+                  <p class="font-medium text-sm" data-i18n="usage_guide_feature4">图文多模态审核</p>
                   <p class="text-gray-400 text-xs mt-1">支持海报、配图文字识别与审核</p>
                 </div>
               </div>
@@ -561,22 +836,20 @@
 
           <!-- 审核历史 -->
           <div class="aliyun-card p-6">
-            <h3 class="text-lg font-semibold mb-4">审核历史</h3>
-            <div id="history-empty" class="text-center py-4 text-gray-500 text-sm">暂无历史记录</div>
+            <h3 class="text-lg font-semibold mb-4" data-i18n="review_history_title">审核历史</h3>
+            <div id="history-empty" class="text-center py-4 text-gray-500 text-sm" data-i18n="review_history_empty">暂无历史记录</div>
             <div id="review-history-list" class="space-y-1 max-h-48 overflow-y-auto"></div>
-            <button id="clear-history-btn" class="aliyun-btn-secondary w-full mt-3 py-2 rounded-lg text-sm transition-all hidden">
-              清空历史
-            </button>
+            <button id="clear-history-btn" class="aliyun-btn-secondary w-full mt-3 py-2 rounded-lg text-sm transition-all hidden" data-i18n="review_history_clear">清空历史</button>
           </div>
 
           <!-- 使用说明 -->
           <details class="aliyun-card p-6">
             <summary class="text-lg font-semibold cursor-pointer list-none flex items-center justify-between hover:text-aliyun-orange transition-colors">
-              <span>使用说明</span>
+              <span data-i18n="usage_guide_title">使用说明</span>
               <span class="text-gray-400 text-xs transition-transform details-arrow">▼</span>
             </summary>
             <div class="mt-4 space-y-3 text-sm text-gray-400">
-              <p><strong class="text-gray-300">操作流程：</strong>输入文本或上传图片 → 点击「开始审核」→ 查看结果</p>
+              <p data-i18n="usage_guide_flow">操作流程：输入文本或上传图片 → 点击「开始审核」→ 查看结果</p>
               <p><strong class="text-gray-300">快捷键：</strong>Ctrl+Enter 快速提交审核</p>
               <p><strong class="text-gray-300">违规类型：</strong>夸大收益、虚假宣传、误导性陈述等 7 种</p>
               <p><strong class="text-gray-300">历史记录：</strong>点击历史项可填充文本重新审核</p>
@@ -588,7 +861,7 @@
         <div>
           <div class="aliyun-card p-6">
             <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
-              <h3 class="text-lg font-semibold">审核结果</h3>
+              <h3 class="text-lg font-semibold" data-i18n="review_result_title">审核结果</h3>
               <div id="review-result-actions" class="hidden flex items-center gap-2">
                 <button id="export-result-btn" class="aliyun-btn-secondary px-3 py-1.5 rounded-lg text-sm transition-all" title="导出为 JSON">
                   导出
@@ -600,7 +873,7 @@
               <div class="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <span class="text-3xl">📋</span>
               </div>
-              <p class="text-gray-400">输入文本或上传图片后点击"开始审核"</p>
+              <p class="text-gray-400" data-i18n="review_empty_hint">输入文本或上传图片后点击"开始审核"</p>
             </div>
 
             <div id="review-result-content" class="hidden space-y-6">
@@ -609,13 +882,13 @@
 
               <!-- 违规类型 -->
               <div id="review-violation-type" class="hidden">
-                <h4 class="text-sm font-medium text-gray-300 mb-2">违规类型</h4>
+                <h4 class="text-sm font-medium text-gray-300 mb-2" data-i18n="review_violation_type">违规类型</h4>
                 <div id="review-violation-badge"></div>
               </div>
 
               <!-- 置信度 -->
               <div id="review-confidence-section" class="hidden">
-                <h4 class="text-sm font-medium text-gray-300 mb-2">置信度</h4>
+                <h4 class="text-sm font-medium text-gray-300 mb-2" data-i18n="review_confidence">置信度</h4>
                 <div class="flex items-center gap-3">
                   <div class="flex-1 h-2 bg-white/5 rounded-full overflow-hidden">
                     <div id="review-confidence-bar" class="h-full bg-gradient-to-r from-aliyun-orange to-orange-400 transition-all"></div>
@@ -626,19 +899,19 @@
 
               <!-- 引用条文 -->
               <div id="review-articles-section" class="hidden">
-                <h4 class="text-sm font-medium text-gray-300 mb-3">引用监管条文</h4>
+                <h4 class="text-sm font-medium text-gray-300 mb-3" data-i18n="review_cited_articles">引用监管条文</h4>
                 <div id="review-articles-list" class="space-y-3"></div>
               </div>
 
               <!-- 审核理由 -->
               <div id="review-reasoning-section" class="hidden">
-                <h4 class="text-sm font-medium text-gray-300 mb-2">审核理由</h4>
+                <h4 class="text-sm font-medium text-gray-300 mb-2" data-i18n="review_reasoning">审核理由</h4>
                 <div id="review-reasoning-text" class="text-sm text-gray-400 leading-relaxed bg-white/5 p-4 rounded-lg"></div>
               </div>
 
               <!-- 详细审核结果（文本+图片） -->
               <div id="review-details-section" class="hidden">
-                <h4 class="text-sm font-medium text-gray-300 mb-3">详细审核结果</h4>
+                <h4 class="text-sm font-medium text-gray-300 mb-3" data-i18n="review_detailed_results">详细审核结果</h4>
                 <div id="review-details-list" class="space-y-3"></div>
               </div>
             </div>
@@ -669,7 +942,7 @@
         <div class="flex justify-center">
           <button id="cancel-review-btn" 
                   class="aliyun-btn-secondary px-6 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2">
-            <span>取消审核</span>
+            <span data-i18n="review_cancel">取消审核</span>
           </button>
         </div>
       </div>
@@ -679,16 +952,16 @@
     <div id="page-profile" class="page">
       <div class="max-w-3xl mx-auto">
         <div class="mb-8">
-          <h1 class="text-3xl font-bold mb-2">个人中心</h1>
-          <p class="text-gray-400">管理您的账号和API密钥配置</p>
+          <h1 class="text-3xl font-bold mb-2" data-i18n="profile_title">个人中心</h1>
+          <p class="text-gray-400" data-i18n="profile_subtitle">管理您的账号和API密钥配置</p>
         </div>
 
         <!-- 用户信息 -->
         <div class="aliyun-card p-6 mb-6">
-          <h3 class="text-lg font-semibold mb-4">账号信息</h3>
+          <h3 class="text-lg font-semibold mb-4" data-i18n="profile_account_info">账号信息</h3>
           <div class="space-y-3">
             <div class="flex items-center gap-3">
-              <span class="text-gray-400 text-sm w-20">用户名</span>
+              <span class="text-gray-400 text-sm w-20" data-i18n="profile_username">用户名</span>
               <span id="profile-username" class="text-white font-medium"></span>
             </div>
             <div class="flex items-center gap-3">
@@ -700,24 +973,25 @@
 
         <!-- API密钥管理 -->
         <div class="aliyun-card p-6">
-          <h3 class="text-lg font-semibold mb-2">API密钥管理</h3>
+          <h3 class="text-lg font-semibold mb-2" data-i18n="profile_api_key_section">API密钥管理</h3>
           <p class="text-gray-400 text-sm mb-6">配置百炼大模型API密钥以使用审核功能</p>
 
           <div class="space-y-4">
             <div>
               <label class="block text-sm font-medium text-gray-300 mb-2">
-                百炼API密钥
+                <span data-i18n="profile_api_key_label">百炼API密钥</span>
+                <span data-i18n="profile_api_key_hint">如何获取？访问</span>
                 <a href="https://dashscope.console.aliyun.com/apiKey" target="_blank" 
-                   class="text-aliyun-orange hover:underline text-xs ml-2">
-                  获取密钥 →
+                   class="text-aliyun-orange hover:underline text-xs ml-2" data-i18n="profile_api_key_hint_link">
+                  百炼控制台
                 </a>
               </label>
               <div class="flex gap-3">
                 <input type="password" id="api-key-input" 
                        class="aliyun-input flex-1 px-4 py-3 rounded-lg transition-all" 
-                       placeholder="sk-xxxxxxxxxxxxxxxx">
+                       placeholder="sk-xxxxxxxxxxxxxxxx" data-i18n="profile_api_key_placeholder">
                 <button id="verify-api-key-btn" 
-                        class="aliyun-btn-secondary px-6 py-3 rounded-lg font-medium transition-all whitespace-nowrap">
+                        class="aliyun-btn-secondary px-6 py-3 rounded-lg font-medium transition-all whitespace-nowrap" data-i18n="profile_api_key_verify">
                   验证
                 </button>
               </div>
@@ -725,12 +999,12 @@
             </div>
 
             <button id="save-api-key-btn" 
-                    class="aliyun-btn-primary w-full py-3 font-semibold rounded-lg transition-all">
+                    class="aliyun-btn-primary w-full py-3 font-semibold rounded-lg transition-all" data-i18n="profile_api_key_save">
               保存密钥
             </button>
 
             <div id="api-key-status" class="hidden p-4 bg-white/5 rounded-lg">
-              <p class="text-sm text-gray-300 mb-2">当前状态</p>
+              <p class="text-sm text-gray-300 mb-2" data-i18n="profile_api_key_status">当前状态</p>
               <div id="api-key-status-content"></div>
             </div>
           </div>
@@ -800,7 +1074,7 @@
     function clearHistory() {
       localStorage.removeItem(HISTORY_KEY);
       renderHistory();
-      toast('历史记录已清空', 'info');
+      toast(t('toast_history_cleared'), 'info');
     }
     
     function renderHistory() {
@@ -957,7 +1231,7 @@
           setToken(data.token);
           localStorage.setItem('user', JSON.stringify(data.user));
           showPage('review');
-          toast('登录成功', 'success');
+          toast(t('toast_login_success'), 'success');
         } else {
           errorEl.textContent = data.detail || '登录失败';
           errorEl.classList.remove('hidden');
@@ -1011,7 +1285,7 @@
           setToken(data.token);
           localStorage.setItem('user', JSON.stringify(data.user));
           showPage('profile');
-          toast('注册成功', 'success');
+          toast(t('toast_register_success'), 'success');
         } else {
           errorEl.textContent = data.detail || '注册失败';
           errorEl.classList.remove('hidden');
@@ -1198,14 +1472,14 @@
       const barEl = document.getElementById('progress-bar-fill');
       
       if (hasText && imageCount > 0) {
-        titleEl.textContent = '正在分析文本与图片内容，请稍候...';
-        subtitleEl.textContent = 'AI 将依次分析文本和每张图片的合规性';
+        titleEl.textContent = t('progress_analyzing');
+        subtitleEl.textContent = 'AI ' + (currentLang === 'zh' ? '将依次分析文本和每张图片的合规性' : 'will analyze text and images for compliance');
       } else if (imageCount > 0) {
-        titleEl.textContent = '正在分析图片内容，请稍候...';
-        subtitleEl.textContent = 'AI 正在识别图片文字并审核合规性';
+        titleEl.textContent = t('progress_analyzing_images');
+        subtitleEl.textContent = 'AI ' + (currentLang === 'zh' ? '正在识别图片文字并审核合规性' : 'is extracting text from images and reviewing compliance');
       } else {
-        titleEl.textContent = '正在分析文本内容，请稍候...';
-        subtitleEl.textContent = 'AI 正在检索相关法规并判断合规性';
+        titleEl.textContent = t('progress_analyzing');
+        subtitleEl.textContent = 'AI ' + (currentLang === 'zh' ? '正在检索相关法规并判断合规性' : 'is retrieving regulations and judging compliance');
       }
       
       const totalImages = imageCount;
@@ -1214,9 +1488,9 @@
       let simulatedImageIndex = 0;
       
       statusEl.textContent = totalImages > 0 
-        ? `正在审核第 1 张图片，共 ${totalImages} 张...`
-        : '正在分析文本...';
-      etaEl.textContent = `预计还需约 ${estimatedSec} 秒`;
+        ? t('progress_reviewing_image', { current: 1, total: totalImages })
+        : t('progress_analyzing');
+      etaEl.textContent = t('progress_estimated_time', { seconds: estimatedSec });
       barEl.style.width = '0%';
       
       overlay.classList.add('visible');
@@ -1227,14 +1501,16 @@
         barEl.style.width = `${progress}%`;
         
         const remaining = Math.max(0, Math.ceil(estimatedSec - elapsed / 1000));
-        etaEl.textContent = remaining > 0 ? `预计还需约 ${remaining} 秒` : '即将完成...';
+        etaEl.textContent = remaining > 0 
+          ? t('progress_estimated_time', { seconds: remaining })
+          : (currentLang === 'zh' ? '即将完成...' : 'Almost done...');
         
         if (totalImages > 0) {
           const imageProgress = (elapsed / 1000 - (hasText ? ESTIMATE_TEXT_SEC : 0)) / ESTIMATE_IMAGE_SEC;
           const currentImage = Math.min(totalImages, Math.max(1, Math.floor(imageProgress) + 1));
           if (currentImage !== simulatedImageIndex) {
             simulatedImageIndex = currentImage;
-            statusEl.textContent = `正在审核第 ${currentImage} 张图片，共 ${totalImages} 张...`;
+            statusEl.textContent = t('progress_reviewing_image', { current: currentImage, total: totalImages });
           }
         }
       }, 200);
@@ -1344,7 +1620,7 @@
           hideProgressOverlay(false);
           const errorMsg = data.detail || data.error || '审核失败';
           if (res.status === 401) {
-            toast('API 密钥错误，请前往个人中心重新配置', 'error');
+            toast(t('toast_api_key_error'), 'error');
             showPage('profile');
           } else {
             toast(errorMsg, 'error');
@@ -1632,7 +1908,7 @@
         const data = await res.json();
         
         if (data.success) {
-          toast('API密钥已保存', 'success');
+          toast(t('toast_api_key_saved'), 'success');
           loadProfile();
         } else {
           toast('保存失败：' + (data.detail || '未知错误'), 'error');
@@ -1647,6 +1923,7 @@
     
     // ========== 初始化 ==========
     (async function init() {
+      updateI18n();
       const user = await checkAuth();
       if (user) {
         localStorage.setItem('user', JSON.stringify(user));
