@@ -1,0 +1,39 @@
+# 保险营销内容智能审核系统 - 核心依赖
+# Python 3.9+
+
+# 百炼大模型 SDK
+dashscope>=1.14.0
+# 多模态审核（qwen-vl）使用 OpenAI 兼容接口
+openai>=1.0.0
+
+# Web 框架
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+
+# 向量库（CPU 版本，无需 GPU）
+faiss-cpu>=1.7.4
+
+# 文档解析
+PyPDF2>=3.0.0
+python-docx>=1.1.0
+
+# 配置与工具
+pyyaml>=6.0
+python-dotenv>=1.0.0
+
+# 文本嵌入与向量化
+numpy>=1.24.0
+
+# 测试
+pytest>=7.0.0
+pytest-asyncio>=0.21.0
+httpx>=0.24.0
+
+# 演示
+rich>=13.0.0
+
+# 用户系统与认证
+sqlalchemy>=2.0.0
+python-jose[cryptography]>=3.3.0
+bcrypt>=4.0.0
+python-multipart>=0.0.6

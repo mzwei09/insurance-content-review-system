@@ -1,0 +1,62 @@
+# 保险营销内容智能审核系统 - 配置文件
+# 复制此文件并根据需要修改
+
+# API 配置（优先从环境变量 DASHSCOPE_API_KEY 读取）
+api:
+  # 百炼 API 密钥（可选，未配置时从 .env 读取）
+  dashscope_api_key: ""
+  # 嵌入模型：text-embedding-v2、text-embedding-v3
+  embedding_model: text-embedding-v2
+  # 对话模型：qwen-turbo、qwen-plus、qwen-max
+  model_name: qwen-max
+
+# 百炼大模型配置（兼容旧配置）
+llm:
+  model: qwen-max
+  timeout: 30
+  max_retries: 3
+
+# 向量库配置
+vectorstore:
+  # 向量维度（需与嵌入模型一致，text-embedding-v2 为 1536）
+  dimension: 1536
+  # 嵌入模型
+  embedding_model: text-embedding-v2
+  # 向量库存储目录（faiss.index 与 metadata.json 存放于此）
+  storage_path: data/vectorstore
+  # 兼容旧配置
+  index_path: data/vectorstore/faiss.index
+  metadata_path: data/vectorstore/metadata.json
+
+# 检索配置
+retriever:
+  # 返回的相似文档数量
+  top_k: 5
+  # 相似度阈值（0-1），低于此值的结果将被过滤
+  score_threshold: 0.6
+
+# 审核配置
+review:
+  # 是否启用知识库检索增强
+  use_retrieval: true
+  # 审核结果缓存时间（秒，0 表示不缓存）
+  cache_ttl: 0
+  # 置信度阈值（0-1），低于此值建议人工复核
+  confidence_threshold: 0.7
+
+# 数据库配置
+database:
+  url: "sqlite:///data/users.db"
+
+# 认证配置
+auth:
+  secret_key: "your-secret-key-change-in-production"
+  algorithm: "HS256"
+  access_token_expire_minutes: 1440  # 24小时
+
+# 服务配置
+server:
+  host: 0.0.0.0
+  port: 8000
+  # 是否开启调试模式
+  debug: false
