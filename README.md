@@ -29,7 +29,7 @@
 
 ```bash
 # 1. 克隆项目
-git clone <your-repo-url>
+git clone https://github.com/mzwei09/insurance-content-review-system.git
 cd insurance-content-review-system
 
 # 2. 一键启动（自动安装依赖、初始化数据库、构建知识库、启动服务）
@@ -37,6 +37,8 @@ bash start.sh
 
 # 3. 浏览器访问 http://localhost:8000 🎉
 ```
+
+> 💡 **提示**：如果你 fork 了这个项目，请将上面的 `mzwei09` 替换为你的 GitHub 用户名
 
 ### 🔧 命令行参数
 
