@@ -65,7 +65,7 @@ cd insurance-content-review-system
 # 2. 一键启动（自动安装依赖、初始化数据库、构建知识库、启动服务）
 bash start.sh
 
-# 3. 浏览器访问 http://localhost:8000 🎉
+# 3. 浏览器访问 <http://localhost:8000> 🎉
 ```
 
 > 💡 **提示**：如果你 fork 了这个项目，请将上面的 `mzwei09` 替换为你的 GitHub 用户名
@@ -74,9 +74,9 @@ bash start.sh
 
 启动成功后，可按以下步骤验证：
 
-1. **健康检查**：访问 http://localhost:8000/api/health，应返回 `{"status":"ok"}`
-2. **API 文档**：访问 http://localhost:8000/docs，可查看完整接口文档
-3. **前端界面**：访问 http://localhost:8000，注册并登录后配置 API 密钥，即可开始审核
+1. **健康检查**：访问 <http://localhost:8000/api/health>，应返回 `{"status":"ok"}`
+2. **API 文档**：访问 <http://localhost:8000/docs>，可查看完整接口文档
+3. **前端界面**：访问 <http://localhost:8000>，注册并登录后配置 API 密钥，即可开始审核
 
 ### 常见启动错误
 
@@ -142,7 +142,7 @@ lsof -ti:8000 | xargs kill -9
 
 ### 🔑 如何获取百炼 API 密钥？
 
-1. 访问：https://dashscope.console.aliyun.com/apiKey
+1. 访问：<https://dashscope.console.aliyun.com/apiKey>
 2. 登录阿里云账号（可免费注册）
 3. 点击「创建新的 API-KEY」
 4. 复制密钥（格式：`sk-xxxxxx`）
@@ -259,9 +259,9 @@ bash scripts/start_server.sh
 
 启动成功后，在浏览器中访问：
 
-- **前端界面**：http://localhost:8000
-- **健康检查**：http://localhost:8000/api/health
-- **API 文档**：http://localhost:8000/docs
+- **前端界面**：<http://localhost:8000>
+- **健康检查**：<http://localhost:8000/api/health>
+- **API 文档**：<http://localhost:8000/docs>
 
 ### API 接口文档
 
@@ -441,7 +441,7 @@ cat reports/evaluation_report.md
 ### 手动测试
 
 1. 启动服务：`bash start.sh`
-2. 访问：http://localhost:8000
+2. 访问：<http://localhost:8000>
 3. 点击「示例」按钮快速测试
 4. 或上传 `test_images/` 中的图片
 
@@ -491,10 +491,10 @@ cat reports/evaluation_report.md
 > 💡 **生成截图**：若截图缺失，请参考 [截图指引](docs/SCREENSHOT_GUIDE.md) 手动截取并保存至 `docs/screenshots/`。创建目录：`mkdir -p docs/screenshots`
 
 ### Web界面
-访问 http://localhost:8000，输入内容即可审核
+访问 <http://localhost:8000>，输入内容即可审核
 
 ### 命令行演示
-可通过 API 文档 (http://localhost:8000/docs) 或 curl 调用审核接口进行测试。
+可通过 API 文档 (<http://localhost:8000/docs>) 或 curl 调用审核接口进行测试。
 
 ### 效果评估
 
@@ -607,7 +607,7 @@ python3 -c "import numpy, faiss; print('OK')"
 
 - 确认密钥格式：`sk-` 开头
 - 检查密钥是否过期
-- 访问 https://dashscope.console.aliyun.com/apiKey 重新生成
+- 访问 <https://dashscope.console.aliyun.com/apiKey> 重新生成
 
 ## 🤝 贡献
 

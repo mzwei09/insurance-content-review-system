@@ -62,7 +62,7 @@ cd insurance-content-review-system
 # 2. One-click start (auto-install dependencies, initialize database, build knowledge base, start service)
 bash start.sh
 
-# 3. Visit http://localhost:8000 in your browser 🎉
+# 3. Visit <http://localhost:8000> in your browser 🎉
 ```
 
 > 💡 **Tip**: If you forked this project, replace `mzwei09` with your GitHub username in the clone URL
@@ -71,9 +71,9 @@ bash start.sh
 
 After successful startup, verify with these steps:
 
-1. **Health Check**: Visit http://localhost:8000/api/health, should return `{"status":"ok"}`
-2. **API Documentation**: Visit http://localhost:8000/docs to view complete API documentation
-3. **Frontend Interface**: Visit http://localhost:8000, register and login, configure API key, then start reviewing
+1. **Health Check**: Visit <http://localhost:8000/api/health>, should return `{"status":"ok"}`
+2. **API Documentation**: Visit <http://localhost:8000/docs> to view complete API documentation
+3. **Frontend Interface**: Visit <http://localhost:8000>, register and login, configure API key, then start reviewing
 
 ### Common Startup Errors
 
@@ -138,7 +138,7 @@ lsof -ti:8000 | xargs kill -9
 
 ### 🔑 How to Get Dashscope API Key?
 
-1. Visit: https://dashscope.console.aliyun.com/apiKey
+1. Visit: <https://dashscope.console.aliyun.com/apiKey>
 2. Login to Alibaba Cloud account (free registration available)
 3. Click "Create New API-KEY"
 4. Copy the key (format: `sk-xxxxxx`)
@@ -255,9 +255,9 @@ bash scripts/start_server.sh
 
 After successful startup, visit in browser:
 
-- **Frontend Interface**: http://localhost:8000
-- **Health Check**: http://localhost:8000/api/health
-- **API Documentation**: http://localhost:8000/docs
+- **Frontend Interface**: <http://localhost:8000>
+- **Health Check**: <http://localhost:8000/api/health>
+- **API Documentation**: <http://localhost:8000/docs>
 
 ### API Documentation
 
@@ -438,7 +438,7 @@ cat reports/evaluation_report.md
 ### Manual Testing
 
 1. Start service: `bash start.sh`
-2. Visit: http://localhost:8000
+2. Visit: <http://localhost:8000>
 3. Click "Example" button for quick test
 4. Or upload images from `test_images/`
 
@@ -486,10 +486,10 @@ Run `python scripts/run_evaluation.py` to get evaluation report, typical metrics
 </table>
 
 ### Web Interface
-Visit http://localhost:8000, input content to review
+Visit <http://localhost:8000>, input content to review
 
 ### Command Line Demo
-Test review endpoints via API documentation (http://localhost:8000/docs) or curl.
+Test review endpoints via API documentation (<http://localhost:8000/docs>) or curl.
 
 ### Effect Evaluation
 
@@ -584,7 +584,7 @@ python3 -c "import numpy, faiss; print('OK')"
 
 - Confirm key format: starts with `sk-`
 - Check if key is expired
-- Visit https://dashscope.console.aliyun.com/apiKey to regenerate
+- Visit <https://dashscope.console.aliyun.com/apiKey> to regenerate
 
 ## 🤝 Contributing
 
