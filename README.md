@@ -466,13 +466,22 @@ cat reports/evaluation_report.md
 
 ### 界面预览
 
-| 登录 | 注册 | 审核（空状态） |
-|------|------|----------------|
-| ![登录](docs/screenshots/01-login.png) | ![注册](docs/screenshots/02-register.png) | ![审核空状态](docs/screenshots/03-review-empty.png) |
+<table>
+<tr>
+<td width="33%"><b>登录页面</b><br/><img src="docs/screenshots/01-login.png" width="100%"/><br/>用户登录界面，支持用户名密码登录</td>
+<td width="33%"><b>注册页面</b><br/><i>点击"立即注册"进入注册页面</i><br/>新用户注册，填写用户名、密码、邮箱</td>
+<td width="33%"><b>审核页面（空状态）</b><br/><i>登录后进入主审核页面</i><br/>输入文本或上传图片进行审核</td>
+</tr>
+<tr>
+<td width="33%"><b>文本审核结果</b><br/><i>输入违规文本示例</i><br/>显示违规类型、引用条文、置信度</td>
+<td width="33%"><b>图片审核结果</b><br/><i>上传多张测试图片</i><br/>逐张显示每张图片的审核详情</td>
+<td width="33%"><b>个人中心</b><br/><i>点击右上角头像进入</i><br/>配置百炼 API 密钥，管理账号信息</td>
+</tr>
+</table>
 
-| 文本审核 | 图片审核 | 个人中心 |
-|----------|----------|----------|
-| ![文本审核](docs/screenshots/04-review-text.png) | ![图片审核](docs/screenshots/05-review-images.png) | ![个人中心](docs/screenshots/06-profile.png) |
+> 💡 **提示**：完整的截图指南请参考 [docs/SCREENSHOT_GUIDE.md](docs/SCREENSHOT_GUIDE.md)
+> 
+> 如需查看实际运行效果，请按照「快速开始」章节启动系统
 
 > 💡 **生成截图**：若截图缺失，请参考 [截图指引](docs/SCREENSHOT_GUIDE.md) 手动截取并保存至 `docs/screenshots/`。
 
