@@ -254,3 +254,81 @@ async def test_review_multimodal_no_content(client, auth_headers):
     assert response.status_code == 400
     data = response.json()
     assert "detail" in data
+
+
+@pytest.mark.asyncio
+async def test_review_multimodal_images_only(client, auth_headers):
+    """测试多模态接口 - 仅图片无文本"""
+    import base64
+    png_data = base64.b64decode(
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg=="
+    )
+    files = {
+        "images": ("poster.png", io.BytesIO(png_data), "image/png")
+    }
+    # 文本为空，仅传图片
+    response = await client.post(
+        "/api/review-multimodal",
+        data={"text": ""},
+        files=files,
+        headers=auth_headers
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert data.get("success") is True
+    assert "data" in data
+
+
+@pytest.mark.asyncio
+async def test_auth_me_with_token(client, auth_headers):
+    """测试 GET /api/auth/me 有 token 时返回用户信息"""
+    response = await client.get("/api/auth/me", headers=auth_headers)
+    assert response.status_code == 200
+    data = response.json()
+    assert data.get("success") is True
+    assert "user" in data
+    assert data["user"].get("username")
+
+
+@pytest.mark.asyncio
+async def test_auth_me_without_token(client):
+    """测试 GET /api/auth/me 无 token 时返回 401"""
+    response = await client.get("/api/auth/me")
+    assert response.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_get_api_key_masked(client, auth_headers):
+    """测试 GET /api/user/api-key 返回脱敏密钥"""
+    response = await client.get("/api/user/api-key", headers=auth_headers)
+    assert response.status_code == 200
+    data = response.json()
+    assert data.get("success") is True
+    assert "api_key_masked" in data or "configured" in data
+
+
+@pytest.mark.asyncio
+async def test_review_without_api_key(client):
+    """测试审核 - 用户未配置 API 密钥"""
+    import random
+    import string
+    random_suffix = ''.join(random.choices(string.ascii_lowercase + string.digits, k=8))
+    username = f"nokey_user_{random_suffix}"
+    await client.post(
+        "/api/auth/register",
+        json={"username": username, "password": "test123456", "email": f"{username}@example.com"}
+    )
+    login_resp = await client.post(
+        "/api/auth/login",
+        json={"username": username, "password": "test123456"}
+    )
+    token = login_resp.json().get("token")
+    # 不配置 API 密钥
+    headers = {"Authorization": f"Bearer {token}"}
+    response = await client.post(
+        "/api/review",
+        json={"content": "测试内容"},
+        headers=headers
+    )
+    assert response.status_code == 400
+    assert "API" in response.json().get("detail", "") or "密钥" in response.json().get("detail", "")

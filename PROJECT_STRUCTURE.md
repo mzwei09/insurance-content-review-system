@@ -62,9 +62,15 @@ aireviewsystem/
 │
 ├── docs/                        # 文档
 │   ├── architecture.md         # 系统架构
-│   └── PERFORMANCE_ANALYSIS.md  # 性能分析
+│   ├── PERFORMANCE_ANALYSIS.md  # 性能分析
+│   ├── SCREENSHOT_GUIDE.md     # 界面截图指引
+│   ├── DOCUMENTATION_ASSESSMENT_REPORT.md  # 文档评估报告
+│   └── VERIFICATION_CHECKLIST.md  # 验证清单
 │
-├── test_images/                 # 测试图片
+├── logs/                        # 应用日志（运行时生成，tail -f logs/app.log）
+├── reports/                     # 评估报告（run_evaluation.py 生成，含 evaluation_report.html）
+│
+├── test_images/                 # 测试图片（5 张，用于图文审核验收）
 │   └── README.md                # 测试图片说明
 │
 ├── ACCEPTANCE_GUIDE.md          # 验收指南

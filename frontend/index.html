@@ -249,24 +249,102 @@
       pointer-events: none;
       opacity: 0.6;
     }
+    
+    /* Toast 通知样式 */
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      pointer-events: none;
+    }
+    .toast {
+      padding: 12px 20px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 500;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      pointer-events: auto;
+      max-width: 90vw;
+    }
+    .toast-success {
+      background: rgba(52, 211, 153, 0.95);
+      color: #064e3b;
+      border: 1px solid rgba(52, 211, 153, 0.5);
+    }
+    .toast-error {
+      background: rgba(248, 113, 113, 0.95);
+      color: #7f1d1d;
+      border: 1px solid rgba(248, 113, 113, 0.5);
+    }
+    .toast-info {
+      background: rgba(26, 35, 50, 0.95);
+      color: #e5e7eb;
+      border: 1px solid rgba(255, 106, 0, 0.3);
+    }
+    
+    /* 汉堡菜单移动端展开 */
+    @media (max-width: 639px) {
+      .nav-links {
+        display: none;
+        position: absolute;
+        top: 100%;
+        right: 0;
+        margin-top: 8px;
+        flex-direction: column;
+        background: rgba(26, 35, 50, 0.98);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        padding: 12px;
+        min-width: 160px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+      }
+      .nav-links.open {
+        display: flex;
+      }
+    }
+    
+    /* 使用说明 details 隐藏默认箭头 */
+    details summary::-webkit-details-marker { display: none; }
+    
+    /* 移动端触摸区域优化 */
+    @media (max-width: 639px) {
+      .aliyun-btn-primary, .aliyun-btn-secondary { min-height: 44px; }
+      .upload-zone { min-height: 120px; }
+    }
   </style>
 </head>
 <body class="aliyun-gradient-bg min-h-screen text-white">
+  <!-- Toast 容器 -->
+  <div id="toast-container" class="toast-container"></div>
+
   <!-- 导航栏 -->
   <nav id="navbar" class="hidden sticky top-0 z-50 bg-aliyun-dark/90 backdrop-blur-lg border-b border-white/10">
-    <div class="max-w-7xl mx-auto px-6 flex items-center justify-between h-16">
-      <div class="flex items-center gap-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-14 sm:h-16">
+      <div class="flex items-center gap-4 sm:gap-8">
         <a href="#" data-page="review" class="page-link flex items-center gap-2">
-          <div class="w-8 h-8 bg-gradient-to-br from-aliyun-orange to-orange-400 rounded-lg flex items-center justify-center">
+          <div class="w-8 h-8 bg-gradient-to-br from-aliyun-orange to-orange-400 rounded-lg flex items-center justify-center flex-shrink-0">
             <span class="text-white font-bold text-sm">AI</span>
           </div>
-          <span class="text-white font-semibold text-lg">保险营销内容智能审核</span>
+          <span class="text-white font-semibold text-base sm:text-lg truncate max-w-[180px] sm:max-w-none">保险营销内容智能审核</span>
         </a>
       </div>
-      <div class="flex items-center gap-6">
-        <span id="nav-username" class="text-gray-300 text-sm"></span>
-        <a href="#" data-page="profile" class="page-link text-gray-300 hover:text-white transition-colors text-sm">个人中心</a>
-        <button id="logout-btn" class="text-gray-400 hover:text-red-400 transition-colors text-sm">退出登录</button>
+      <div class="relative flex items-center gap-2 sm:gap-6">
+        <div id="nav-links" class="nav-links flex items-center gap-4 sm:gap-6">
+          <span id="nav-username" class="text-gray-300 text-sm hidden sm:inline"></span>
+          <a href="#" data-page="profile" class="page-link text-gray-300 hover:text-white transition-colors text-sm py-2">个人中心</a>
+          <button id="logout-btn" class="text-gray-400 hover:text-red-400 transition-colors text-sm py-2">退出登录</button>
+        </div>
+        <button id="hamburger-btn" class="hamburger-btn aliyun-btn-secondary rounded-lg p-2 sm:hidden" aria-label="菜单">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
       </div>
     </div>
   </nav>
@@ -299,9 +377,13 @@
                      placeholder="请输入密码">
             </div>
             <p id="login-error" class="text-red-400 text-sm hidden"></p>
-            <button type="submit" 
-                    class="aliyun-btn-primary w-full py-3 text-white font-semibold rounded-lg transition-all">
-              登录
+            <button type="submit" id="login-submit-btn"
+                    class="aliyun-btn-primary w-full py-3 text-white font-semibold rounded-lg transition-all disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+              <span id="login-btn-text">登录</span>
+              <span id="login-btn-loading" class="hidden flex items-center justify-center gap-2">
+                <div class="loading-spinner"></div>
+                <span>登录中...</span>
+              </span>
             </button>
           </form>
           <p class="mt-6 text-center text-gray-400 text-sm">
@@ -344,9 +426,13 @@
                      placeholder="example@email.com">
             </div>
             <p id="register-error" class="text-red-400 text-sm hidden"></p>
-            <button type="submit" 
-                    class="aliyun-btn-primary w-full py-3 text-white font-semibold rounded-lg transition-all">
-              注册
+            <button type="submit" id="register-submit-btn"
+                    class="aliyun-btn-primary w-full py-3 text-white font-semibold rounded-lg transition-all disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+              <span id="register-btn-text">注册</span>
+              <span id="register-btn-loading" class="hidden flex items-center justify-center gap-2">
+                <div class="loading-spinner"></div>
+                <span>注册中...</span>
+              </span>
             </button>
           </form>
           <p class="mt-6 text-center text-gray-400 text-sm">
@@ -472,12 +558,43 @@
               </div>
             </div>
           </div>
+
+          <!-- 审核历史 -->
+          <div class="aliyun-card p-6">
+            <h3 class="text-lg font-semibold mb-4">审核历史</h3>
+            <div id="history-empty" class="text-center py-4 text-gray-500 text-sm">暂无历史记录</div>
+            <div id="review-history-list" class="space-y-1 max-h-48 overflow-y-auto"></div>
+            <button id="clear-history-btn" class="aliyun-btn-secondary w-full mt-3 py-2 rounded-lg text-sm transition-all hidden">
+              清空历史
+            </button>
+          </div>
+
+          <!-- 使用说明 -->
+          <details class="aliyun-card p-6">
+            <summary class="text-lg font-semibold cursor-pointer list-none flex items-center justify-between hover:text-aliyun-orange transition-colors">
+              <span>使用说明</span>
+              <span class="text-gray-400 text-xs transition-transform details-arrow">▼</span>
+            </summary>
+            <div class="mt-4 space-y-3 text-sm text-gray-400">
+              <p><strong class="text-gray-300">操作流程：</strong>输入文本或上传图片 → 点击「开始审核」→ 查看结果</p>
+              <p><strong class="text-gray-300">快捷键：</strong>Ctrl+Enter 快速提交审核</p>
+              <p><strong class="text-gray-300">违规类型：</strong>夸大收益、虚假宣传、误导性陈述等 7 种</p>
+              <p><strong class="text-gray-300">历史记录：</strong>点击历史项可填充文本重新审核</p>
+            </div>
+          </details>
         </div>
 
         <!-- 右侧：结果区 -->
         <div>
           <div class="aliyun-card p-6">
-            <h3 class="text-lg font-semibold mb-4">审核结果</h3>
+            <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+              <h3 class="text-lg font-semibold">审核结果</h3>
+              <div id="review-result-actions" class="hidden flex items-center gap-2">
+                <button id="export-result-btn" class="aliyun-btn-secondary px-3 py-1.5 rounded-lg text-sm transition-all" title="导出为 JSON">
+                  导出
+                </button>
+              </div>
+            </div>
             
             <div id="review-result-empty" class="text-center py-16">
               <div class="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center mx-auto mb-4">
@@ -626,6 +743,21 @@
     // ========== 全局状态 ==========
     let currentPage = 'login';
     let uploadedImages = [];  // { file, dataUrl } 用于预览和提交
+    let lastReviewResult = null;  // 当前审核结果，用于导出
+    
+    // ========== Toast 通知 ==========
+    function toast(message, type = 'info') {
+      const container = document.getElementById('toast-container');
+      const el = document.createElement('div');
+      el.className = `toast toast-${type} flex items-center justify-center`;
+      el.textContent = message;
+      container.appendChild(el);
+      setTimeout(() => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(-10px)';
+        setTimeout(() => el.remove(), 300);
+      }, 3000);
+    }
     
     // ========== Token管理 ==========
     function getToken() {
@@ -638,6 +770,79 @@
       } else {
         localStorage.removeItem('token');
       }
+    }
+    
+    // ========== 审核历史（localStorage） ==========
+    const HISTORY_KEY = 'review_history';
+    const HISTORY_MAX = 20;
+    
+    function getHistory() {
+      try {
+        const raw = localStorage.getItem(HISTORY_KEY);
+        return raw ? JSON.parse(raw) : [];
+      } catch (e) { return []; }
+    }
+    
+    function addToHistory(fullContent, inputPreview, result) {
+      const list = getHistory();
+      const isImageOnly = !fullContent && inputPreview && inputPreview.startsWith('已上传');
+      list.unshift({
+        ts: Date.now(),
+        input: (inputPreview || '').slice(0, 100),
+        content: isImageOnly ? '' : (fullContent || '').slice(0, 2000),  // 可填充文本，最多 2000 字
+        compliance: result.compliance,
+        violation_types: result.violation_types || []
+      });
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(list.slice(0, HISTORY_MAX)));
+      renderHistory();
+    }
+    
+    function clearHistory() {
+      localStorage.removeItem(HISTORY_KEY);
+      renderHistory();
+      toast('历史记录已清空', 'info');
+    }
+    
+    function renderHistory() {
+      const list = getHistory();
+      const container = document.getElementById('review-history-list');
+      const empty = document.getElementById('history-empty');
+      const clearBtn = document.getElementById('clear-history-btn');
+      if (!container) return;
+      if (list.length === 0) {
+        empty?.classList.remove('hidden');
+        clearBtn?.classList.add('hidden');
+        container.querySelectorAll('.history-item').forEach(el => el.remove());
+        return;
+      }
+      empty?.classList.add('hidden');
+      clearBtn?.classList.remove('hidden');
+      const existing = container.querySelectorAll('.history-item');
+      existing.forEach(el => el.remove());
+      list.slice(0, 10).forEach((item, i) => {
+        const div = document.createElement('div');
+        div.className = 'history-item flex items-center gap-2 text-sm py-2 px-3 rounded-lg bg-white/5 hover:bg-white/10 cursor-pointer';
+        div.innerHTML = `
+          <span class="${item.compliance ? 'text-green-400' : 'text-red-400'}">${item.compliance ? '✓' : '✗'}</span>
+          <span class="text-gray-400 truncate flex-1">${escapeHtml(item.input || '无文本')}</span>
+        `;
+        div.title = item.input || '无文本';
+        div.addEventListener('click', () => {
+          if (item.content) {
+            document.getElementById('review-input').value = item.content;
+            toast('已填充历史内容', 'success');
+          } else {
+            toast('该记录为图片审核，无法填充文本', 'info');
+          }
+        });
+        container.appendChild(div);
+      });
+    }
+    
+    function escapeHtml(s) {
+      const div = document.createElement('div');
+      div.textContent = s;
+      return div.innerHTML;
     }
     
     // ========== 页面切换 ==========
@@ -660,6 +865,7 @@
         // 特殊页面处理
         if (pageName === 'review') {
           checkReviewAccess();
+          renderHistory();
         } else if (pageName === 'profile') {
           loadProfile();
         }
@@ -709,15 +915,35 @@
         e.preventDefault();
         const page = el.getAttribute('data-page');
         showPage(page);
+        document.getElementById('nav-links')?.classList.remove('open');
       });
     });
     
     // ========== 登录 ==========
     document.getElementById('login-form').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const username = document.getElementById('login-username').value;
+      const username = document.getElementById('login-username').value.trim();
       const password = document.getElementById('login-password').value;
       const errorEl = document.getElementById('login-error');
+      const btn = document.getElementById('login-submit-btn');
+      const btnText = document.getElementById('login-btn-text');
+      const btnLoading = document.getElementById('login-btn-loading');
+      
+      if (!username) {
+        errorEl.textContent = '请输入用户名';
+        errorEl.classList.remove('hidden');
+        return;
+      }
+      if (!password) {
+        errorEl.textContent = '请输入密码';
+        errorEl.classList.remove('hidden');
+        return;
+      }
+      
+      errorEl.classList.add('hidden');
+      btn.disabled = true;
+      btnText.classList.add('hidden');
+      btnLoading.classList.remove('hidden');
       
       try {
         const res = await fetch('/api/auth/login', {
@@ -731,6 +957,7 @@
           setToken(data.token);
           localStorage.setItem('user', JSON.stringify(data.user));
           showPage('review');
+          toast('登录成功', 'success');
         } else {
           errorEl.textContent = data.detail || '登录失败';
           errorEl.classList.remove('hidden');
@@ -738,16 +965,39 @@
       } catch (err) {
         errorEl.textContent = '网络错误，请重试';
         errorEl.classList.remove('hidden');
+      } finally {
+        btn.disabled = false;
+        btnText.classList.remove('hidden');
+        btnLoading.classList.add('hidden');
       }
     });
     
     // ========== 注册 ==========
     document.getElementById('register-form').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const username = document.getElementById('register-username').value;
+      const username = document.getElementById('register-username').value.trim();
       const password = document.getElementById('register-password').value;
-      const email = document.getElementById('register-email').value;
+      const email = document.getElementById('register-email').value.trim();
       const errorEl = document.getElementById('register-error');
+      const btn = document.getElementById('register-submit-btn');
+      const btnText = document.getElementById('register-btn-text');
+      const btnLoading = document.getElementById('register-btn-loading');
+      
+      if (!username) {
+        errorEl.textContent = '请输入用户名';
+        errorEl.classList.remove('hidden');
+        return;
+      }
+      if (!password || password.length < 6) {
+        errorEl.textContent = '密码至少6位字符';
+        errorEl.classList.remove('hidden');
+        return;
+      }
+      
+      errorEl.classList.add('hidden');
+      btn.disabled = true;
+      btnText.classList.add('hidden');
+      btnLoading.classList.remove('hidden');
       
       try {
         const res = await fetch('/api/auth/register', {
@@ -761,6 +1011,7 @@
           setToken(data.token);
           localStorage.setItem('user', JSON.stringify(data.user));
           showPage('profile');
+          toast('注册成功', 'success');
         } else {
           errorEl.textContent = data.detail || '注册失败';
           errorEl.classList.remove('hidden');
@@ -768,6 +1019,10 @@
       } catch (err) {
         errorEl.textContent = '网络错误，请重试';
         errorEl.classList.remove('hidden');
+      } finally {
+        btn.disabled = false;
+        btnText.classList.remove('hidden');
+        btnLoading.classList.add('hidden');
       }
     });
     
@@ -776,6 +1031,17 @@
       setToken(null);
       localStorage.removeItem('user');
       showPage('login');
+      document.getElementById('nav-links')?.classList.remove('open');
+    });
+    
+    // 输入时清除错误提示
+    ['login-username', 'login-password', 'register-username', 'register-password', 'register-email'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener('input', () => {
+        const form = el.closest('form');
+        const err = form?.querySelector('[id$="-error"]');
+        if (err) { err.classList.add('hidden'); err.textContent = ''; }
+      });
     });
     
     // ========== 示例填充 ==========
@@ -792,24 +1058,60 @@
     // ========== 图片上传 ==========
     const IMAGE_MAX_SIZE = 5 * 1024 * 1024;  // 5MB
     const IMAGE_MAX_COUNT = 6;
+    const IMAGE_COMPRESS_THRESHOLD = 1024 * 1024;  // 1MB 以上压缩
+    const IMAGE_MAX_DIMENSION = 1920;
+    
+    function compressImageIfNeeded(file, callback) {
+      if (file.size <= IMAGE_COMPRESS_THRESHOLD) {
+        callback(file);
+        return;
+      }
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.naturalWidth, height = img.naturalHeight;
+        if (width > IMAGE_MAX_DIMENSION || height > IMAGE_MAX_DIMENSION) {
+          if (width > height) {
+            height = Math.round((height / width) * IMAGE_MAX_DIMENSION);
+            width = IMAGE_MAX_DIMENSION;
+          } else {
+            width = Math.round((width / height) * IMAGE_MAX_DIMENSION);
+            height = IMAGE_MAX_DIMENSION;
+          }
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        canvas.toBlob(blob => {
+          URL.revokeObjectURL(img.src);
+          const compressed = new File([blob], file.name, { type: file.type || 'image/jpeg' });
+          callback(compressed);
+        }, file.type || 'image/jpeg', 0.85);
+      };
+      img.onerror = () => { URL.revokeObjectURL(img.src); callback(file); };
+      img.src = URL.createObjectURL(file);
+    }
     
     function addImages(files) {
       const list = Array.from(files || []).filter(f => f.type && f.type.startsWith('image/'));
       if (uploadedImages.length + list.length > IMAGE_MAX_COUNT) {
-        alert(`最多上传 ${IMAGE_MAX_COUNT} 张图片`);
+        toast(`最多上传 ${IMAGE_MAX_COUNT} 张图片`, 'error');
         return;
       }
       for (const file of list) {
         if (file.size > IMAGE_MAX_SIZE) {
-          alert(`图片 ${file.name} 超过 5MB，已跳过`);
+          toast(`图片 ${file.name} 超过 5MB，已跳过`, 'error');
           continue;
         }
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          uploadedImages.push({ file, dataUrl: e.target.result });
-          renderImagePreviews();
-        };
-        reader.readAsDataURL(file);
+        compressImageIfNeeded(file, (processedFile) => {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            uploadedImages.push({ file: processedFile, dataUrl: e.target.result });
+            renderImagePreviews();
+          };
+          reader.readAsDataURL(processedFile);
+        });
       }
     }
     
@@ -979,7 +1281,7 @@
       const content = document.getElementById('review-input').value.trim();
       const hasImages = uploadedImages.length > 0;
       if (!content && !hasImages) {
-        alert('请至少输入文本或上传图片');
+        toast('请至少输入文本或上传图片', 'error');
         return;
       }
       
@@ -1031,17 +1333,21 @@
         
         if (res.ok && data.success) {
           hideProgressOverlay(true);
+          lastReviewResult = data.data;
           displayResult(data.data);
+          const inputPreview = content || (uploadedImages.length > 0 ? `已上传 ${uploadedImages.length} 张图片` : '');
+          addToHistory(content, inputPreview, data.data);
           resultEmpty.classList.add('hidden');
           resultContent.classList.remove('hidden');
+          document.getElementById('review-result-actions')?.classList.remove('hidden');
         } else {
           hideProgressOverlay(false);
           const errorMsg = data.detail || data.error || '审核失败';
           if (res.status === 401) {
-            alert('⚠️ API 密钥错误\n\n' + errorMsg + '\n\n请前往「个人中心」重新配置正确的百炼 API 密钥。');
+            toast('API 密钥错误，请前往个人中心重新配置', 'error');
             showPage('profile');
           } else {
-            alert('❌ ' + errorMsg);
+            toast(errorMsg, 'error');
           }
         }
       } catch (err) {
@@ -1049,7 +1355,7 @@
         if (err.name === 'AbortError') {
           // 用户取消，不弹窗
         } else {
-          alert('❌ 网络错误，请重试\n\n' + err.message);
+          toast('网络错误，请重试', 'error');
         }
       } finally {
         btn.disabled = false;
@@ -1066,6 +1372,37 @@
         reviewAbortController.abort();
         hideProgressOverlay(false);
       }
+    });
+    
+    // 导出审核结果
+    document.getElementById('export-result-btn')?.addEventListener('click', () => {
+      if (!lastReviewResult) {
+        toast('暂无可导出的结果', 'error');
+        return;
+      }
+      const blob = new Blob([JSON.stringify(lastReviewResult, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `审核结果_${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+      toast('已导出为 JSON 文件', 'success');
+    });
+    
+    // 清空历史
+    document.getElementById('clear-history-btn')?.addEventListener('click', clearHistory);
+    
+    // Ctrl+Enter 提交审核
+    document.getElementById('review-input')?.addEventListener('keydown', (e) => {
+      if (e.ctrlKey && e.key === 'Enter') {
+        e.preventDefault();
+        document.getElementById('review-btn')?.click();
+      }
+    });
+    
+    // 汉堡菜单
+    document.getElementById('hamburger-btn')?.addEventListener('click', () => {
+      document.getElementById('nav-links')?.classList.toggle('open');
     });
     
     function displayResult(result) {
@@ -1230,7 +1567,7 @@
     document.getElementById('verify-api-key-btn').addEventListener('click', async () => {
       const apiKey = document.getElementById('api-key-input').value.trim();
       if (!apiKey) {
-        alert('请输入API密钥');
+        toast('请输入API密钥', 'error');
         return;
       }
       
@@ -1274,7 +1611,7 @@
     document.getElementById('save-api-key-btn').addEventListener('click', async () => {
       const apiKey = document.getElementById('api-key-input').value.trim();
       if (!apiKey) {
-        alert('请输入API密钥');
+        toast('请输入API密钥', 'error');
         return;
       }
       
@@ -1295,13 +1632,13 @@
         const data = await res.json();
         
         if (data.success) {
-          alert('API密钥已保存');
+          toast('API密钥已保存', 'success');
           loadProfile();
         } else {
-          alert('保存失败：' + (data.detail || '未知错误'));
+          toast('保存失败：' + (data.detail || '未知错误'), 'error');
         }
       } catch (err) {
-        alert('保存失败：网络错误');
+        toast('保存失败：网络错误', 'error');
       } finally {
         btn.disabled = false;
         btn.textContent = '保存密钥';

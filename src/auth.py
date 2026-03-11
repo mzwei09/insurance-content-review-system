@@ -2,33 +2,26 @@
 
 from __future__ import annotations
 
+import os
 from datetime import datetime, timedelta, timezone
+
 import bcrypt
 from jose import JWTError, jwt
 from sqlalchemy import select
-from sqlalchemy.orm import Session
-
-from .database import User, get_engine
 from sqlalchemy.orm import sessionmaker
 
-def _get_session_factory():
-    engine = get_engine()
-    return sessionmaker(autocommit=False, autoflush=False, bind=engine)
+from .database import User, get_engine
 
-
-def get_db_session():
-    """获取数据库会话"""
-    SessionLocal = _get_session_factory()
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+# bcrypt 加密轮数，可通过环境变量 BCRYPT_ROUNDS 覆盖（默认 12）
+_BCRYPT_ROUNDS = int(os.environ.get("BCRYPT_ROUNDS", "12"))
 
 
 def hash_password(password: str) -> str:
-    """密码 bcrypt 加密"""
-    return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+    """密码 bcrypt 加密，rounds 可配置以随硬件升级调整安全强度"""
+    rounds = min(max(_BCRYPT_ROUNDS, 10), 14)  # 限制在 10-14 之间，避免过慢或过弱
+    return bcrypt.hashpw(
+        password.encode("utf-8"), bcrypt.gensalt(rounds=rounds)
+    ).decode("utf-8")
 
 
 def verify_password(plain: str, hashed: str) -> bool:

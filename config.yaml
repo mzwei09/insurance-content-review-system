@@ -9,6 +9,8 @@ api:
   embedding_model: text-embedding-v2
   # 对话模型：qwen-turbo、qwen-plus、qwen-max
   model_name: qwen-max
+  # 多模态模型（图文审核时用于图片文字提取）：qwen-vl-max
+  multimodal_model: qwen-vl-max
 
 # 百炼大模型配置（兼容旧配置）
 llm:
@@ -50,9 +52,15 @@ database:
 
 # 认证配置
 auth:
+  # 生产环境必须修改！可通过环境变量 AUTH_SECRET_KEY 覆盖
   secret_key: "your-secret-key-change-in-production"
   algorithm: "HS256"
   access_token_expire_minutes: 1440  # 24小时
+
+# CORS 配置（生产环境应指定具体域名，避免使用 *）
+# cors_origins: ["*"]  # 开发环境
+# cors_origins: ["https://your-frontend.com"]  # 生产环境
+cors_origins: ["*"]
 
 # 服务配置
 server:

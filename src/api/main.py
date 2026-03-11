@@ -1,12 +1,22 @@
-"""FastAPI 主入口 - 审核接口、认证、API密钥管理、静态前端"""
+"""FastAPI 主入口 - 审核接口、认证、API密钥管理、静态前端
+
+功能模块：
+- 认证：注册、登录、JWT 签发与验证
+- API 密钥：用户个人百炼密钥的 CRUD 与验证
+- 审核：文本审核 /api/review、图文审核 /api/review-multimodal
+- 健康检查：/api/health
+- 静态前端：/ 挂载 frontend/
+"""
 
 from __future__ import annotations
 
 import logging
-from typing import Optional
 import os
+import time
+from contextlib import asynccontextmanager
 from datetime import timedelta
 from pathlib import Path
+from typing import Optional
 
 import yaml
 from fastapi import Depends, FastAPI, File, Form, HTTPException, Request, UploadFile
@@ -21,6 +31,11 @@ from ..auth import verify_token
 from ..database import get_engine, init_db
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(name)s] %(levelname)s: %(message)s")
+
+# 业务常量（可考虑移至 config 或 constants 模块）
+MIN_PASSWORD_LENGTH = 6
+MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024  # 单张图片 5MB
+MAX_TOTAL_IMAGES_SIZE_BYTES = 20 * 1024 * 1024  # 多图总大小 20MB
 
 
 # Pydantic models at module level for proper FastAPI body inference
@@ -41,8 +56,7 @@ class LoginRequest(BaseModel):
 
 class APIKeyRequest(BaseModel):
     api_key: str
-import time
-from contextlib import asynccontextmanager
+
 
 _reviewer = None
 _multimodal_reviewer = None
@@ -51,6 +65,7 @@ security = HTTPBearer(auto_error=False)
 
 
 def _load_config() -> dict:
+    """加载 config.yaml。main.py 位于 src/api/，Path(__file__).parent.parent.parent 为项目根目录。"""
     config_path = Path(__file__).parent.parent.parent / "config.yaml"
     if config_path.exists():
         with open(config_path, "r", encoding="utf-8") as f:
@@ -61,10 +76,19 @@ def _load_config() -> dict:
 def _get_auth_config() -> tuple[str, str, int]:
     cfg = _load_config()
     auth_cfg = cfg.get("auth", {})
-    secret = auth_cfg.get("secret_key", "your-secret-key-change-in-production")
+    secret = os.environ.get("AUTH_SECRET_KEY") or auth_cfg.get(
+        "secret_key", "your-secret-key-change-in-production"
+    )
     algo = auth_cfg.get("algorithm", "HS256")
     expire_min = auth_cfg.get("access_token_expire_minutes", 1440)
     return secret, algo, expire_min
+
+
+def _get_cors_origins() -> list[str]:
+    """获取 CORS 允许的域名列表，生产环境应避免 *"""
+    cfg = _load_config()
+    origins = cfg.get("cors_origins", ["*"])
+    return origins if isinstance(origins, list) else [origins]
 
 
 def _get_db_url() -> str:
@@ -271,6 +295,13 @@ def _resolve_api_key_for_review(current_user: Optional[dict], required: bool = T
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    secret, _, _ = _get_auth_config()
+    if secret == "your-secret-key-change-in-production" and not os.environ.get(
+        "ALLOW_DEFAULT_SECRET"
+    ):
+        _logger.warning(
+            "安全警告: 使用默认 JWT 密钥，生产环境请设置 AUTH_SECRET_KEY 或修改 config.yaml"
+        )
     _logger.info("Initializing database...")
     db_url = _get_db_url()
     if db_url:
@@ -294,9 +325,10 @@ def create_app() -> FastAPI:
         lifespan=lifespan,
     )
 
+    cors_origins = _get_cors_origins()
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],
+        allow_origins=cors_origins,
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
@@ -320,12 +352,13 @@ def create_app() -> FastAPI:
 
     @app.exception_handler(Exception)
     async def global_exception_handler(request, exc):
-        _logger.exception("Unhandled exception: %s", exc)
         if isinstance(exc, HTTPException):
+            _logger.info("HTTP %d: %s", exc.status_code, exc.detail)
             return JSONResponse(
                 status_code=exc.status_code,
                 content={"detail": exc.detail} if isinstance(exc.detail, str) else {"detail": exc.detail},
             )
+        _logger.exception("Unhandled exception: %s", exc)
         return JSONResponse(
             status_code=500,
             content={"detail": "服务器内部错误"},
@@ -336,8 +369,8 @@ def create_app() -> FastAPI:
     async def register(req: RegisterRequest):
         if not req.username.strip():
             raise HTTPException(status_code=400, detail="用户名不能为空")
-        if not req.password or len(req.password) < 6:
-            raise HTTPException(status_code=400, detail="密码至少6位")
+        if not req.password or len(req.password) < MIN_PASSWORD_LENGTH:
+            raise HTTPException(status_code=400, detail=f"密码至少{MIN_PASSWORD_LENGTH}位")
         try:
             user = auth.register(req.username.strip(), req.password, req.email, _get_db_url())
             secret, algo, expire_min = _get_auth_config()
@@ -494,6 +527,7 @@ def create_app() -> FastAPI:
             raise HTTPException(status_code=400, detail="请先在个人中心配置百炼 API 密钥")
 
         image_urls = []
+        total_size = 0
         for uploaded in images:
             if not uploaded.filename or not uploaded.content_type:
                 continue
@@ -506,10 +540,23 @@ def create_app() -> FastAPI:
                 data = await uploaded.read()
                 if not data:
                     continue
+                if len(data) > MAX_IMAGE_SIZE_BYTES:
+                    raise HTTPException(
+                        status_code=413,
+                        detail=f"单张图片不能超过 {MAX_IMAGE_SIZE_BYTES // (1024*1024)}MB",
+                    )
+                total_size += len(data)
+                if total_size > MAX_TOTAL_IMAGES_SIZE_BYTES:
+                    raise HTTPException(
+                        status_code=413,
+                        detail=f"图片总大小不能超过 {MAX_TOTAL_IMAGES_SIZE_BYTES // (1024*1024)}MB",
+                    )
                 import base64
                 b64 = base64.b64encode(data).decode("utf-8")
                 mime = uploaded.content_type or "image/jpeg"
                 image_urls.append(f"data:{mime};base64,{b64}")
+            except HTTPException:
+                raise
             except Exception as e:
                 _logger.warning("Read image failed: %s", e)
                 raise HTTPException(status_code=400, detail=f"图片读取失败：{e}")

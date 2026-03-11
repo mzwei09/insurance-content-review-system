@@ -268,9 +268,11 @@ class ContentReviewer:
         # b. 构造 prompt
         logger.info("-" * 80)
         logger.info("🔧 步骤2: 构造Prompt...")
-        user_prompt = self._user_template.format(
-            content=content,
-            retrieved_articles=retrieved_text,
+        # 使用 replace 避免用户内容中的 { } 被 format 解析导致 prompt 注入
+        content_safe = content.replace("{", "{{").replace("}", "}}")
+        retrieved_safe = retrieved_text.replace("{", "{{").replace("}", "}}")
+        user_prompt = self._user_template.replace("{content}", content_safe).replace(
+            "{retrieved_articles}", retrieved_safe
         )
         logger.info(f"✅ Prompt构造完成 (长度: {len(user_prompt)} 字符)")
 

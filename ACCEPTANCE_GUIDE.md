@@ -18,7 +18,7 @@
 | 输出格式 | ✅ 100% | 合规判断+违规类型+条文引用+置信度 |
 | 监管文档 | ✅ 100% | 3篇文档全部解析（134条） |
 | 技术增强 | ✅ 100% | RAG + Prompt Engineering + Workflow |
-| 效果评估 | ✅ 100% | 准确率100% |
+| 效果评估 | ✅ 100% | 完整评估模块，结果以实际运行 `run_evaluation.py` 为准 |
 | 演示要求 | ✅ 100% | 代码+架构图+文档 |
 
 **总体完成度：100%**
@@ -42,7 +42,7 @@
 ### 步骤1：启动系统
 
 ```bash
-cd /Users/mingzewei/workspace/aireviewsystem
+cd <项目根目录>   # 替换为实际克隆路径，如 insurance-content-review-system
 bash start.sh
 ```
 
@@ -220,14 +220,23 @@ bash start.sh
 ### 步骤8：查看评估报告
 
 ```bash
-open /Users/mingzewei/workspace/aireviewsystem/reports/evaluation_report.html
+# 先运行评估生成报告
+python scripts/run_evaluation.py
+
+# 查看报告（macOS）
+open reports/evaluation_report.html
+
+# 或直接打开文件
+# Windows: start reports/evaluation_report.html
+# Linux: xdg-open reports/evaluation_report.html
 ```
 
 **预期看到**：
-- 准确率：100%
-- 宏平均F1：70.30%
+- 准确率、宏平均 F1 等指标
 - 混淆矩阵
 - 各违规类型的指标
+
+> 具体数值以实际运行结果为准。
 
 ---
 
@@ -284,7 +293,7 @@ open /Users/mingzewei/workspace/aireviewsystem/reports/evaluation_report.html
 5. ✅ 违规案例判断正确
 6. ✅ 合规案例判断正确
 7. ✅ 引用条文正确
-8. ✅ 评估报告准确率100%
+8. ✅ 评估报告可正常生成（准确率等指标以实际运行结果为准）
 
 ### 加分项（已实现）
 
@@ -350,14 +359,15 @@ kill -9 <PID>
 - **总文件数**：56
 - **代码行数**：3,199
 - **测试用例**：23个（全部通过）
-- **评估样例**：30个（准确率100%）
+- **评估样例**：30+ 个（覆盖 7 种违规类型，结果以实际运行为准）
 
 ### 交付文档
 
 - `README.md` - 项目说明（主要文档）
 - `ACCEPTANCE_GUIDE.md` - 验收指南（本文档）
-- `MULTI_AGENT_DEVELOPMENT_PLAN.md` - 多Agent开发计划
-- `docs/` - 技术文档目录
+- `PROJECT_STRUCTURE.md` - 项目结构说明
+- `CHANGELOG.md` - 版本变更记录
+- `docs/` - 技术文档目录（架构、性能分析、截图指引）
 
 ### 已删除文档
 
@@ -384,10 +394,10 @@ kill -9 <PID>
 
 ## 🎁 项目亮点
 
-### 1. 准确率100%
-- 在30个测试样例上评估
-- 所有合规案例正确识别
-- 所有违规案例正确识别
+### 1. 完整评估模块
+- 支持 30+ 个测试样例
+- 覆盖合规/违规、7 种违规类型
+- 准确率、召回率、F1、条文引用等指标以实际运行 `run_evaluation.py` 为准
 
 ### 2. 用户体验优秀
 - 注册/登录系统
@@ -434,7 +444,7 @@ git push -u origin main
 发送GitHub链接，并说明：
 1. 一键启动：`bash start.sh`
 2. 注册账号并配置API密钥
-3. 准确率100%
+3. 完整评估模块
 4. 完整的用户系统
 5. 详细的README文档
 

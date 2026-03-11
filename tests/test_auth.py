@@ -93,3 +93,21 @@ def test_api_key_manager(test_db_url):
     # 删除
     assert api_key_manager.delete_api_key(user.id, db_url) is True
     assert api_key_manager.get_api_key(user.id, db_url) is None
+
+
+def test_jwt_token_expired(test_db_url):
+    """测试 JWT token 过期后验证返回 None"""
+    from datetime import timedelta
+    from src import auth
+
+    auth.register("expuser", "pass", None, test_db_url)
+    secret = "test-secret"
+    # 使用负的 expires_delta 使 token 立即过期
+    token = auth.create_access_token(
+        {"sub": "1", "username": "expuser"},
+        secret,
+        expires_delta=timedelta(seconds=-1),
+    )
+    assert token
+    payload = auth.verify_token(token, secret)
+    assert payload is None

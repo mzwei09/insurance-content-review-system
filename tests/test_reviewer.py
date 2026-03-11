@@ -158,3 +158,90 @@ def test_retriever_metadata_flexibility():
 
     assert articles[0]["article_id"] in ("doc_1", "doc_2")
     assert len(articles[0]["article_text"]) > 0
+
+
+@patch("src.reviewer.call_llm_json")
+def test_content_reviewer_multiple_violation_types(mock_call_llm):
+    """测试多种违规类型同时存在"""
+    from src.reviewer import ContentReviewer
+
+    mock_call_llm.return_value = {
+        "compliance": False,
+        "violation_types": ["夸大收益", "误导性陈述"],
+        "violation_type": "夸大收益",
+        "cited_articles": [
+            {"article_id": "第二十三条", "article_text": "...", "relevance_score": 0.9},
+            {"article_id": "第二十二条", "article_text": "...", "relevance_score": 0.85},
+        ],
+        "confidence": 0.92,
+        "reasoning": "同时存在夸大收益和误导性陈述",
+    }
+    reviewer = ContentReviewer(vectorstore=None, retriever=None)
+    result = reviewer.review("收益10%稳赚不赔，相当于存款无风险")
+
+    assert result["compliance"] is False
+    assert result.get("violation_types") is not None
+    assert len(result["violation_types"]) >= 1
+    assert "夸大收益" in result["violation_types"] or result["violation_type"] == "夸大收益"
+    mock_call_llm.assert_called_once()
+
+
+@patch("src.reviewer.call_llm_json")
+def test_content_reviewer_confidence_boundary(mock_call_llm):
+    """测试置信度边界值处理"""
+    from src.reviewer import ContentReviewer
+
+    mock_call_llm.return_value = {
+        "compliance": True,
+        "violation_type": None,
+        "cited_articles": [],
+        "confidence": 1.5,  # 超出范围
+        "reasoning": "合规",
+    }
+    reviewer = ContentReviewer(vectorstore=None, retriever=None)
+    result = reviewer.review("合规内容")
+    assert 0 <= result["confidence"] <= 1
+
+
+@patch("src.reviewer.call_llm_json")
+def test_content_reviewer_negative_confidence(mock_call_llm):
+    """测试负置信度被裁剪"""
+    from src.reviewer import ContentReviewer
+
+    mock_call_llm.return_value = {
+        "compliance": False,
+        "violation_type": "夸大收益",
+        "cited_articles": [],
+        "confidence": -0.1,
+        "reasoning": "违规",
+    }
+    reviewer = ContentReviewer(vectorstore=None, retriever=None)
+    result = reviewer.review("违规内容")
+    assert result["confidence"] >= 0
+
+
+@patch("src.reviewer.call_llm_json")
+def test_content_reviewer_prompt_injection_safe(mock_call_llm):
+    """测试用户内容含 { } 时不会导致 prompt 注入"""
+    from src.reviewer import ContentReviewer
+
+    mock_call_llm.return_value = {
+        "compliance": True,
+        "violation_type": None,
+        "violation_types": None,
+        "cited_articles": [],
+        "confidence": 0.9,
+        "reasoning": "合规",
+    }
+    reviewer = ContentReviewer(vectorstore=None, retriever=None)
+    # 用户内容含 format 占位符，应被转义而非解析
+    malicious_content = "收益{retrieved_articles}高{content}保本"
+    result = reviewer.review(malicious_content)
+
+    assert result["compliance"] is True
+    # 验证传入 LLM 的 prompt 中，用户内容被正确转义（不应将 retrieved_articles 注入到 content 位置）
+    call_args = mock_call_llm.call_args
+    user_prompt = call_args.kwargs.get("user_prompt", call_args[1].get("user_prompt", ""))
+    # 转义后应包含 {{ 和 }}，不应有未转义的 {retrieved_articles} 在【待审核内容】段
+    assert "收益{retrieved_articles}高{content}保本" not in user_prompt
+    assert "收益{{retrieved_articles}}高{{content}}保本" in user_prompt or "收益" in user_prompt

@@ -238,5 +238,285 @@
     "expected_violation_type": null,
     "expected_articles": [],
     "description": "边界案例：机构评级表述，不构成虚假宣传"
+  },
+  {
+    "id": "case_031",
+    "content": "投保后保证100%理赔，绝不拒赔！",
+    "expected_compliance": false,
+    "expected_violation_type": "违规承诺",
+    "expected_articles": ["第二十二条"],
+    "description": "违规承诺：承诺100%理赔"
+  },
+  {
+    "id": "case_032",
+    "content": "本产品承诺无等待期，即买即赔，绝无例外。",
+    "expected_compliance": false,
+    "expected_violation_type": "违规承诺",
+    "expected_articles": ["第二十二条"],
+    "description": "违规承诺：承诺无等待期"
+  },
+  {
+    "id": "case_033",
+    "content": "保证续保至100岁，永不拒保！",
+    "expected_compliance": false,
+    "expected_violation_type": "违规承诺",
+    "expected_articles": ["第二十二条"],
+    "description": "违规承诺：承诺保证续保"
+  },
+  {
+    "id": "case_034",
+    "content": "本产品比银行存款收益高5倍，比基金更安全！",
+    "expected_compliance": false,
+    "expected_violation_type": "不当比较",
+    "expected_articles": ["第二十二条"],
+    "description": "不当比较：与银行存款、基金不当比较"
+  },
+  {
+    "id": "case_035",
+    "content": "我们的重疾险比友商便宜一半，保障还更好！",
+    "expected_compliance": false,
+    "expected_violation_type": "不当比较",
+    "expected_articles": ["第二十二条"],
+    "description": "不当比较：贬低同业"
+  },
+  {
+    "id": "case_036",
+    "content": "本产品收益率远超国债，风险却更低！",
+    "expected_compliance": false,
+    "expected_violation_type": "不当比较",
+    "expected_articles": ["第二十二条", "第二十三条"],
+    "description": "不当比较+夸大收益"
+  },
+  {
+    "id": "case_037",
+    "content": "本产品为银保监会备案产品，保障内容详见条款，投资有风险。",
+    "expected_compliance": true,
+    "expected_violation_type": null,
+    "expected_articles": [],
+    "description": "合规：备案+风险提示"
+  },
+  {
+    "id": "case_038",
+    "content": "投保前请仔细阅读保险条款，特别是责任免除部分。",
+    "expected_compliance": true,
+    "expected_violation_type": null,
+    "expected_articles": [],
+    "description": "合规：风险提示"
+  },
+  {
+    "id": "case_039",
+    "content": "本年金险按合同约定给付生存金，具体金额以合同为准。",
+    "expected_compliance": true,
+    "expected_violation_type": null,
+    "expected_articles": [],
+    "description": "合规：年金险说明"
+  },
+  {
+    "id": "case_040",
+    "content": "分红具有不确定性，过往业绩不代表未来表现。",
+    "expected_compliance": true,
+    "expected_violation_type": null,
+    "expected_articles": [],
+    "description": "合规：分红风险披露"
+  },
+  {
+    "id": "case_041",
+    "content": "本产品需健康告知，请如实告知，否则可能影响理赔。",
+    "expected_compliance": true,
+    "expected_violation_type": null,
+    "expected_articles": [],
+    "description": "合规：健康告知提示"
+  },
+  {
+    "id": "case_042",
+    "content": "投保即送高额返利，收益15%起，稳赚不赔！比银行强十倍！",
+    "expected_compliance": false,
+    "expected_violation_type": "夸大收益",
+    "expected_articles": ["第二十三条", "第二十二条"],
+    "description": "复杂场景：夸大收益+不当比较"
+  },
+  {
+    "id": "case_043",
+    "content": "明星代言，国家指定，收益保底8%，绝对靠谱！",
+    "expected_compliance": false,
+    "expected_violation_type": "无资质代言",
+    "expected_articles": ["第二十条", "第十九条", "第二十三条"],
+    "description": "复杂场景：无资质代言+虚假宣传+夸大收益"
+  },
+  {
+    "id": "case_044",
+    "content": "相当于存钱，随时可取，收益比理财高，还没风险。",
+    "expected_compliance": false,
+    "expected_violation_type": "误导性陈述",
+    "expected_articles": ["第二十二条"],
+    "description": "复杂场景：误导+不当比较"
+  },
+  {
+    "id": "case_045",
+    "content": "这款产品'可能'收益不错，'据说'很多人买了。",
+    "expected_compliance": true,
+    "expected_violation_type": null,
+    "expected_articles": [],
+    "description": "边界：模糊表述，不构成明确承诺"
+  },
+  {
+    "id": "case_046",
+    "content": "产品表现良好，历史数据仅供参考，投资需谨慎。",
+    "expected_compliance": true,
+    "expected_violation_type": null,
+    "expected_articles": [],
+    "description": "边界：有风险提示的历史收益表述"
+  },
+  {
+    "id": "case_047",
+    "content": "本产品由持证保险代理人推荐，请根据需求选择。",
+    "expected_compliance": true,
+    "expected_violation_type": null,
+    "expected_articles": [],
+    "description": "边界：持证人员推荐合规"
+  },
+  {
+    "id": "case_048",
+    "content": "收益'确定'写进合同，但实际以结算为准。",
+    "expected_compliance": false,
+    "expected_violation_type": "误导性陈述",
+    "expected_articles": ["第二十二条"],
+    "description": "边界：隐含承诺收益，易误导"
+  },
+  {
+    "id": "case_049",
+    "content": "全国独家，仅此一家，错过再无！国务院特批！",
+    "expected_compliance": false,
+    "expected_violation_type": "虚假宣传",
+    "expected_articles": ["第十九条"],
+    "description": "虚假宣传：捏造政府背书"
+  },
+  {
+    "id": "case_050",
+    "content": "本产品保障全面，具体责任以保险合同为准，投保前请阅读条款。",
+    "expected_compliance": true,
+    "expected_violation_type": null,
+    "expected_articles": [],
+    "description": "合规：标准产品介绍"
+  },
+  {
+    "id": "case_051",
+    "content": "万能险结算利率仅供参考，实际以公司公告为准，存在波动风险。",
+    "expected_compliance": true,
+    "expected_violation_type": null,
+    "expected_articles": [],
+    "description": "合规：万能险风险披露"
+  },
+  {
+    "id": "case_052",
+    "content": "买保险送手机，还返现金，收益翻倍！",
+    "expected_compliance": false,
+    "expected_violation_type": "夸大收益",
+    "expected_articles": ["第二十三条"],
+    "description": "夸大收益：赠品+返现承诺"
+  },
+  {
+    "id": "case_053",
+    "content": "业内顶尖产品，秒杀一切竞品！",
+    "expected_compliance": false,
+    "expected_violation_type": "不当比较",
+    "expected_articles": ["第二十二条"],
+    "description": "不当比较：贬低同业"
+  },
+  {
+    "id": "case_054",
+    "content": "本产品无需健康告知，有病也能买能赔。",
+    "expected_compliance": false,
+    "expected_violation_type": "误导性陈述",
+    "expected_articles": ["第二十二条"],
+    "description": "误导：隐瞒健康告知要求"
+  },
+  {
+    "id": "case_055",
+    "content": "银保监会推荐产品，权威认证，放心购买！",
+    "expected_compliance": false,
+    "expected_violation_type": "虚假宣传",
+    "expected_articles": ["第十九条"],
+    "description": "虚假宣传：捏造监管推荐"
+  },
+  {
+    "id": "case_056",
+    "content": "本产品为银保监会备案产品，保障内容详见合同条款，投资有风险，入市需谨慎。",
+    "expected_compliance": true,
+    "expected_violation_type": null,
+    "expected_articles": [],
+    "description": "合规：备案+完整风险提示"
+  },
+  {
+    "id": "case_057",
+    "content": "分红具有不确定性，过往业绩不代表未来表现，请理性投保。",
+    "expected_compliance": true,
+    "expected_violation_type": null,
+    "expected_articles": [],
+    "description": "合规：分红险风险披露"
+  },
+  {
+    "id": "case_058",
+    "content": "限时特惠！前50名投保送价值千元礼品，先到先得，售完即止！",
+    "expected_compliance": true,
+    "expected_violation_type": null,
+    "expected_articles": [],
+    "description": "合规：促销活动若礼品合规"
+  },
+  {
+    "id": "case_059",
+    "content": "保证续保20年，期间绝不涨价，绝不拒保！",
+    "expected_compliance": false,
+    "expected_violation_type": "违规承诺",
+    "expected_articles": ["第二十二条"],
+    "description": "违规承诺：承诺保证续保"
+  },
+  {
+    "id": "case_060",
+    "content": "本产品收益远超银行存款，风险却比基金低得多！",
+    "expected_compliance": false,
+    "expected_violation_type": "不当比较",
+    "expected_articles": ["第二十二条", "第二十三条"],
+    "description": "不当比较+夸大收益"
+  },
+  {
+    "id": "case_061",
+    "content": "某奥运冠军代言，冠军之选，值得信赖！",
+    "expected_compliance": false,
+    "expected_violation_type": "无资质代言",
+    "expected_articles": ["第二十条"],
+    "description": "无资质代言：运动员代言保险"
+  },
+  {
+    "id": "case_062",
+    "content": "本产品为银保监会备案产品，具体保障以合同为准。",
+    "expected_compliance": true,
+    "expected_violation_type": null,
+    "expected_articles": [],
+    "description": "合规：简洁备案说明"
+  },
+  {
+    "id": "case_063",
+    "content": "稳赚不赔！年化收益保底6%，上不封顶，躺着收钱！",
+    "expected_compliance": false,
+    "expected_violation_type": "夸大收益",
+    "expected_articles": ["第二十三条"],
+    "description": "夸大收益：承诺保底+稳赚"
+  },
+  {
+    "id": "case_064",
+    "content": "本产品相当于理财产品，收益高、风险低、随时可取。",
+    "expected_compliance": false,
+    "expected_violation_type": "误导性陈述",
+    "expected_articles": ["第二十二条"],
+    "description": "误导：混淆保险与理财"
+  },
+  {
+    "id": "case_065",
+    "content": "投保即送iPhone，还返现金，收益翻倍不是梦！",
+    "expected_compliance": false,
+    "expected_violation_type": "夸大收益",
+    "expected_articles": ["第二十三条"],
+    "description": "夸大收益：赠品+返现承诺"
   }
 ]

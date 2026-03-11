@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker
 
+from .crypto_utils import decrypt_api_key, encrypt_api_key
 from .database import APIKey, User, get_engine
 
 
@@ -20,16 +21,20 @@ def save_api_key(user_id: int, api_key: str, db_url: str | None = None) -> APIKe
     """
     保存用户的百炼 API 密钥。
     每个用户只保留一条记录，存在则更新。
+    若配置了 API_KEY_ENCRYPTION_KEY，则加密后存储；否则明文存储（向后兼容）。
     """
+    plain = api_key.strip()
+    encrypted = encrypt_api_key(plain)
+    to_store = encrypted if encrypted else plain
     db = _get_session(db_url)
     try:
         existing = db.execute(select(APIKey).where(APIKey.user_id == user_id)).scalar_one_or_none()
         if existing:
-            existing.api_key_encrypted = api_key.strip()
+            existing.api_key_encrypted = to_store
             db.commit()
             db.refresh(existing)
             return existing
-        key_record = APIKey(user_id=user_id, api_key_encrypted=api_key.strip())
+        key_record = APIKey(user_id=user_id, api_key_encrypted=to_store)
         db.add(key_record)
         db.commit()
         db.refresh(key_record)
@@ -39,11 +44,15 @@ def save_api_key(user_id: int, api_key: str, db_url: str | None = None) -> APIKe
 
 
 def get_api_key(user_id: int, db_url: str | None = None) -> str | None:
-    """获取用户的 API 密钥（明文）"""
+    """获取用户的 API 密钥（明文）。若存储为加密格式则自动解密。"""
     db = _get_session(db_url)
     try:
         record = db.execute(select(APIKey).where(APIKey.user_id == user_id)).scalar_one_or_none()
-        return record.api_key_encrypted if record else None
+        if not record:
+            return None
+        stored = record.api_key_encrypted
+        decrypted = decrypt_api_key(stored)
+        return decrypted if decrypted is not None else stored
     finally:
         db.close()
 

@@ -305,6 +305,7 @@ class MultimodalReviewer(ContentReviewer):
         """返回解析失败时的兜底结果"""
         return {
             "compliance": False,
+            "violation_types": None,
             "violation_type": None,
             "cited_articles": [],
             "confidence": 0.0,

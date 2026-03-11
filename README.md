@@ -443,14 +443,17 @@ cat reports/evaluation_report.md
 
 ### 评估指标
 
-运行 `python scripts/run_evaluation.py` 得到：
+运行 `python scripts/run_evaluation.py` 得到评估报告，典型指标示例：
 
-| 指标 | 数值 |
+| 指标 | 说明 |
 |------|------|
-| 准确率 (Accuracy) | 93.3% |
-| 精确率 (Precision) | 94.7% |
-| 召回率 (Recall) | 90.0% |
-| F1 分数 | 92.3% |
+| 准确率 (Accuracy) | 合规判断正确数 / 总数 |
+| 宏平均精确率 | 各违规类型的宏平均 |
+| 宏平均召回率 | 各违规类型的宏平均 |
+| 宏平均 F1 | 各违规类型的宏平均 |
+| 条文引用准确率 | 正确引用数 / 总引用数 |
+
+> 具体数值以实际运行 `python scripts/run_evaluation.py` 生成的 `reports/evaluation_report.html` 为准。
 
 ### 评估方法
 
@@ -479,7 +482,7 @@ cat reports/evaluation_report.md
 </tr>
 </table>
 
-> 💡 **生成截图**：若截图缺失，请参考 [截图指引](docs/SCREENSHOT_GUIDE.md) 手动截取并保存至 `docs/screenshots/`。
+> 💡 **生成截图**：若截图缺失，请参考 [截图指引](docs/SCREENSHOT_GUIDE.md) 手动截取并保存至 `docs/screenshots/`。创建目录：`mkdir -p docs/screenshots`
 
 ### Web界面
 访问 http://localhost:8000，输入内容即可审核
@@ -519,8 +522,9 @@ tail -f logs/app.log | grep -E "🤖|📝|📤|审核结果"
 ### 运行测试
 
 ```bash
-# 运行所有测试
+# 运行所有测试（需先 pip install -r requirements.txt）
 pytest tests/ -v
+# 或：python -m pytest tests/ -v
 
 # 运行单元测试
 pytest tests/test_reviewer.py -v
@@ -538,6 +542,7 @@ pytest tests/test_integration.py -v
 - [架构文档](docs/architecture.md) - 系统架构设计
 - [项目结构](PROJECT_STRUCTURE.md) - 代码组织说明
 - [验收指南](ACCEPTANCE_GUIDE.md) - 功能验收步骤
+- [截图指引](docs/SCREENSHOT_GUIDE.md) - 界面截图生成说明
 
 ## ⚠️ 常见问题
 
