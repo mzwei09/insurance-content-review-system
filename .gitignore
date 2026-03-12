@@ -33,6 +33,14 @@ data/vectorstore/
 .pytest_cache/
 reports/
 
+# 测试覆盖率报告
+.coverage
+htmlcov/
+
+# 临时评估报告（应在 reports/ 或 docs/ 下）
+/CODE_QUALITY_REPORT.md
+/EVALUATION_REPORT.md
+
 # 防止监管文档被误放到根目录（应放在 data/documents/）
 /*.pdf
 /*.doc
