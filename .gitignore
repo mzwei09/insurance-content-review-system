@@ -33,6 +33,14 @@ data/vectorstore/
 .pytest_cache/
 reports/
 
+# 防止监管文档被误放到根目录（应放在 data/documents/）
+/*.pdf
+/*.doc
+/*.docx
+!README.md
+!README_EN.md
+!LICENSE
+
 # Environment variables
 .env
 .env.local
